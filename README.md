@@ -43,10 +43,10 @@ Built in Unity 6.3 LTS (Universal Render Pipeline).
    git pull origin main
 ```
 
-3. Create your own branch to work on. Replace `your-name-branch-name` with something like `erceniq-player-movement`:
+3. Create your own branch to work on. Replace `branch-name` with something like `player-movement`:
 
 ```
-   git checkout -b your-name-branch-name
+   git checkout -b branch-name
 ```
 
    This creates a new branch and switches you onto it. You are now safely working on your own copy — you cannot break anyone else's work from here.
@@ -67,7 +67,7 @@ Built in Unity 6.3 LTS (Universal Render Pipeline).
    This actually saves a snapshot of your changes with a short message explaining what you did. Replace the text in quotes with something meaningful, e.g. `"add player jump animation"`.
 
 ```
-   git push -u origin your-name-branch-name
+   git push -u origin branch-name
 ```
 
    This uploads your branch and its changes to GitHub, so others (and you, from another computer) can see it.
@@ -84,24 +84,24 @@ Built in Unity 6.3 LTS (Universal Render Pipeline).
 
 10. Your feature branch has now been merged and is no longer needed. Clean it up so your branch list doesn't get cluttered over time.
 
-    Delete it locally:
+   Delete it locally:
 
 ```
-    git branch -d your-name-branch-name
+    git branch -d branch-name
 ```
 
-    Delete it from GitHub too:
+   Delete it from GitHub too, either use the command below or delete from GitHub web page:
 
 ```
-    git push origin --delete your-name-branch-name
+    git push origin --delete branch-name
 ```
 
-    (Replace `your-name-branch-name` with the actual visible branch name in GitHub.)
+   Replace `branch-name` with the actual visible branch name in GitHub.
 
 **If your branch takes more than a day or two to finish:** periodically pull the latest `main` into your branch so you don't drift too far apart and end up with a painful merge conflict later:
 
 ```
-git checkout your-name-branch-name
+git checkout branch-name
 git pull origin main
 ```
 
