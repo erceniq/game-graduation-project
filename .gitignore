@@ -109,3 +109,7 @@ InitTestScene*.unity*
 .vscode/
 .DS_Store
 .obsidian
+
+# Unity MCP local tools
+/Packages/MCPForUnity/
+/Packages/MCPForUnity.meta
