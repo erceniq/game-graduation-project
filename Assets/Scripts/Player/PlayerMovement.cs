@@ -57,7 +57,7 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Sprint")]
     public float sprintSpeedMultiplier = 1.6f;
-    private bool isSprinting;
+    public bool isSprinting;
 
     [Header("Unlocks")]
     public PlayerAbilityUnlocks doubleJump;
@@ -220,7 +220,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void HorizontalMovement()
     {
-        bool isSprinting = inputHandler.sprintHeld && inputHandler.moveInput.magnitude > 0.1f && CanSprint();
+        isSprinting = inputHandler.sprintHeld && inputHandler.moveInput.magnitude > 0.1f && CanSprint();
 
 
         float horizontalInput = inputHandler.moveInput.x;
