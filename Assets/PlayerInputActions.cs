@@ -113,7 +113,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""priority"": 0
                 },
                 {
-                    ""name"": ""New action2"",
+                    ""name"": ""Sprint"",
                     ""type"": ""Button"",
                     ""id"": ""95e85342-eb16-4353-8e43-bbf636a27c6f"",
                     ""expectedControlType"": """",
@@ -203,11 +203,11 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""c13fe59b-5281-429d-ac34-e02feef28780"",
-                    ""path"": """",
+                    ""path"": ""<Keyboard>/leftShift"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""New action2"",
+                    ""action"": ""Sprint"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -231,7 +231,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Movement = asset.FindActionMap("Movement", throwIfNotFound: true);
         m_Movement_Move = m_Movement.FindAction("Move", throwIfNotFound: true);
         m_Movement_Jump = m_Movement.FindAction("Jump", throwIfNotFound: true);
-        m_Movement_Newaction2 = m_Movement.FindAction("New action2", throwIfNotFound: true);
+        m_Movement_Sprint = m_Movement.FindAction("Sprint", throwIfNotFound: true);
         m_Movement_Newaction3 = m_Movement.FindAction("New action3", throwIfNotFound: true);
     }
 
@@ -315,7 +315,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private List<IMovementActions> m_MovementActionsCallbackInterfaces = new List<IMovementActions>();
     private readonly InputAction m_Movement_Move;
     private readonly InputAction m_Movement_Jump;
-    private readonly InputAction m_Movement_Newaction2;
+    private readonly InputAction m_Movement_Sprint;
     private readonly InputAction m_Movement_Newaction3;
     /// <summary>
     /// Provides access to input actions defined in input action map "Movement".
@@ -337,9 +337,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @Jump => m_Wrapper.m_Movement_Jump;
         /// <summary>
-        /// Provides access to the underlying input action "Movement/Newaction2".
+        /// Provides access to the underlying input action "Movement/Sprint".
         /// </summary>
-        public InputAction @Newaction2 => m_Wrapper.m_Movement_Newaction2;
+        public InputAction @Sprint => m_Wrapper.m_Movement_Sprint;
         /// <summary>
         /// Provides access to the underlying input action "Movement/Newaction3".
         /// </summary>
@@ -376,9 +376,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Jump.started += instance.OnJump;
             @Jump.performed += instance.OnJump;
             @Jump.canceled += instance.OnJump;
-            @Newaction2.started += instance.OnNewaction2;
-            @Newaction2.performed += instance.OnNewaction2;
-            @Newaction2.canceled += instance.OnNewaction2;
+            @Sprint.started += instance.OnSprint;
+            @Sprint.performed += instance.OnSprint;
+            @Sprint.canceled += instance.OnSprint;
             @Newaction3.started += instance.OnNewaction3;
             @Newaction3.performed += instance.OnNewaction3;
             @Newaction3.canceled += instance.OnNewaction3;
@@ -399,9 +399,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Jump.started -= instance.OnJump;
             @Jump.performed -= instance.OnJump;
             @Jump.canceled -= instance.OnJump;
-            @Newaction2.started -= instance.OnNewaction2;
-            @Newaction2.performed -= instance.OnNewaction2;
-            @Newaction2.canceled -= instance.OnNewaction2;
+            @Sprint.started -= instance.OnSprint;
+            @Sprint.performed -= instance.OnSprint;
+            @Sprint.canceled -= instance.OnSprint;
             @Newaction3.started -= instance.OnNewaction3;
             @Newaction3.performed -= instance.OnNewaction3;
             @Newaction3.canceled -= instance.OnNewaction3;
@@ -460,12 +460,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnJump(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "New action2" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Sprint" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnNewaction2(InputAction.CallbackContext context);
+        void OnSprint(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "New action3" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
