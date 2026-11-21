@@ -1,20 +1,23 @@
-using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class BootSequence : MonoBehaviour
 {
-    [SerializeField] private CanvasGroup placeholder;
+    [SerializeField] private CanvasGroup teamLogo;
+    [SerializeField] private CanvasGroup autoSave;
     private float timeElapsed = 0f;
-    private float fadeInStart = 1f;
-    private float fadeOutStart = 4f;
-    private float nextSceneStart = 5f;
+    private float teamLogoFadeInStart = 1f;
+    private float teamLogoFadeOutStart = 4f;
+    private float autoSaveFadeInStart = 6f;
+    private float autoSaveFadeOutStart = 11f;
+    private float nextSceneStart = 12f;
     private string nextScene = "MainMenu";
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        placeholder.alpha = 0;
+        teamLogo.alpha = 0;
+        autoSave.alpha = 0;
     }
 
     // Update is called once per frame
@@ -22,13 +25,22 @@ public class BootSequence : MonoBehaviour
     {
         timeElapsed += Time.deltaTime;
 
-        if (timeElapsed >= fadeInStart && timeElapsed < fadeOutStart)
+        if (timeElapsed >= teamLogoFadeInStart && timeElapsed < teamLogoFadeOutStart)
         {
-            placeholder.alpha += 0.5f * Time.deltaTime;
+            teamLogo.alpha += 0.5f * Time.deltaTime;
         }
-        else if (timeElapsed >= fadeOutStart && timeElapsed < nextSceneStart)
+        else if (timeElapsed >= teamLogoFadeOutStart && timeElapsed < autoSaveFadeInStart)
         {
-            placeholder.alpha -= 1f * Time.deltaTime;
+            teamLogo.alpha -= 1f * Time.deltaTime;
+        }
+        else if (timeElapsed >= autoSaveFadeInStart && timeElapsed < autoSaveFadeOutStart)
+        {
+            teamLogo.alpha = 0;
+            autoSave.alpha += 0.5f * Time.deltaTime;
+        }
+        else if (timeElapsed >= autoSaveFadeOutStart && timeElapsed < nextSceneStart)
+        {
+            autoSave.alpha -= 1f * Time.deltaTime;
         }
         else if (timeElapsed >= nextSceneStart)
         {
