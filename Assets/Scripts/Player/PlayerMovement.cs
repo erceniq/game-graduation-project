@@ -26,6 +26,7 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Move")]
     public float moveSpeedMax = 15f;
+    public float speedMultiplier = 1f;
     public float airSpeedMax = 7f;
     private float currentMaxSpeed;
     private float currentSmoothTime;
@@ -47,6 +48,7 @@ public class PlayerMovement : MonoBehaviour
     public float jumpPower;
     public int jumpRemaining = 2;
     public float jumpPowerModifier = 70f;
+    public float jumpMultiplier = 1f;
     public bool jumpTimerGoing;
     private float jumpBufferTimer;
     private float coyoteTimer;
@@ -142,7 +144,7 @@ public class PlayerMovement : MonoBehaviour
 
                     inputHandler.ConsumeJumpPress();
                     jumpRemaining = 1;
-                    playerVerticalVelocity = 0.20f * jumpPowerModifier;
+                    playerVerticalVelocity = 0.20f * jumpPowerModifier*jumpMultiplier;
                     jumpPower = 0f;
                     currentState = MovementState.Airborne;
                     jumpBufferTimer = 0f;
@@ -156,7 +158,7 @@ public class PlayerMovement : MonoBehaviour
                     jumpTimerGoing = false;
                     inputHandler.ConsumeJumpPress();
                     jumpRemaining = 1;
-                    playerVerticalVelocity = (0.10f + jumpPower) * jumpPowerModifier;
+                    playerVerticalVelocity = (0.10f + jumpPower) * jumpPowerModifier*jumpMultiplier;
                     jumpPower = 0f;
                     currentState = MovementState.Airborne;
                     break;
@@ -187,7 +189,7 @@ public class PlayerMovement : MonoBehaviour
                     jumpTimerGoing = false;
 
                     jumpRemaining = 1;
-                    playerVerticalVelocity = 0.3f * jumpPowerModifier;
+                    playerVerticalVelocity = 0.2f * jumpPowerModifier * jumpMultiplier;
                     jumpPower = 0f;
                 }
                 else if (jumpRemaining > 0 && jumpTimerGoing && (jumpRemaining == 1 ? CanDoubleJump() : true))
@@ -197,7 +199,7 @@ public class PlayerMovement : MonoBehaviour
                     jumpBufferTimer = 0f;
                     jumpTimerGoing = false;
                     jumpRemaining = 0;
-                    playerVerticalVelocity = 0.3f * jumpPowerModifier;
+                    playerVerticalVelocity = 0.17f * jumpPowerModifier * jumpMultiplier;
                     jumpPower = 0f;
                 }
                 HorizontalMovement();
@@ -236,7 +238,7 @@ public class PlayerMovement : MonoBehaviour
 
         if (inputMagnitude > 0.05f)
         {
-            float speed = isSprinting ? currentMaxSpeed * sprintSpeedMultiplier : currentMaxSpeed;
+            float speed = isSprinting ? speedMultiplier*currentMaxSpeed * sprintSpeedMultiplier : speedMultiplier*currentMaxSpeed;
             targetVelocity = Vector3.right * Mathf.Sign(horizontalInput) * speed;
         }
 

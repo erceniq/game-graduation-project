@@ -8,6 +8,10 @@ public class PlayerAbilityUnlocks : ScriptableObject
     public float energyCost ;
     public Sprite abilityIcon;
 
+
+    public AbilityId abilityId;
+    public AbilitySlot abilitySlot;
+
     [Header("Status")]
     public bool isUnlocked = false;
 }

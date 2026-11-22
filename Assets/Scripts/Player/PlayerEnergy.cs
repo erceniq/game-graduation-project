@@ -14,6 +14,7 @@ public class PlayerEnergy : MonoBehaviour
     public float SecondTresholdEnergy;
     public float currentEnergy;
     public float autoEnergyGain;
+    public float normalEnergyGain = 5f;
 
     public EnergyLevel currentEnergyLevel = EnergyLevel.Normal;
 
@@ -31,7 +32,10 @@ public class PlayerEnergy : MonoBehaviour
     public PlayerMovement playerMovement;
 
 
-
+    private void Start()
+    {
+        autoEnergyGain= normalEnergyGain;
+    }
 
 
 
@@ -49,10 +53,19 @@ public class PlayerEnergy : MonoBehaviour
         switch (currentEnergyLevel)
         {
             case EnergyLevel.Normal:
+                playerMovement.speedMultiplier = 1.0f;
+                playerMovement.jumpMultiplier = 1.0f;
+                autoEnergyGain = normalEnergyGain;
                 break;
             case EnergyLevel.Low:
+                playerMovement.speedMultiplier = 0.5f;
+                playerMovement.jumpMultiplier = 0.5f;
+                autoEnergyGain = normalEnergyGain / 2;
                 break;
             case EnergyLevel.Zero:
+                playerMovement.speedMultiplier = 0f;
+                playerMovement.jumpMultiplier = 0f;
+                autoEnergyGain = 0f;
                 currentEnergy = 0;
                 autoEnergyGain = 0;
                 break;
@@ -85,12 +98,14 @@ public class PlayerEnergy : MonoBehaviour
 
     private void EnergyChange()
     {
-        currentEnergy= currentEnergy+autoEnergyGain*Time.deltaTime;
+
+        currentEnergy = currentEnergy + autoEnergyGain * Time.deltaTime;
         if (currentEnergy > maxEnergy) currentEnergy = maxEnergy;
 
 
         if (playerMovement.isSprinting)
         {
+            if (currentEnergy <= 0) return;
             currentEnergy = currentEnergy-sprint.energyCost*Time.deltaTime;
         }
 
