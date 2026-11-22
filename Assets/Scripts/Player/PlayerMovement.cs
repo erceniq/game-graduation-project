@@ -206,10 +206,6 @@ public class PlayerMovement : MonoBehaviour
 
                 break;
 
-
-
-                
-          
         }
     }
 

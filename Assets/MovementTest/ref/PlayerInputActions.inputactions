@@ -35,16 +35,6 @@
                     "interactions": "",
                     "initialStateCheck": false,
                     "priority": 0
-                },
-                {
-                    "name": "New action3",
-                    "type": "Button",
-                    "id": "937ef273-1116-4b25-9eb9-fe8dee7379af",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false,
-                    "priority": 0
                 }
             ],
             "bindings": [
@@ -124,15 +114,33 @@
                     "action": "Sprint",
                     "isComposite": false,
                     "isPartOfComposite": false
-                },
+                }
+            ]
+        },
+        {
+            "name": "Other",
+            "id": "805596d7-a099-463f-9935-1dbecb07fd27",
+            "actions": [
+                {
+                    "name": "Interact",
+                    "type": "Button",
+                    "id": "9dd143fe-565a-4d8b-ae33-5426ca08369b",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                }
+            ],
+            "bindings": [
                 {
                     "name": "",
-                    "id": "b704a8de-4847-4112-8f6f-624c16bc2cae",
-                    "path": "",
+                    "id": "51883f97-902b-457d-922b-855268b3022e",
+                    "path": "<Keyboard>/r",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "New action3",
+                    "action": "Interact",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -14,6 +14,12 @@ public class PlayerInputHandler : MonoBehaviour
     public bool sprintHeld { get; private set; }
 
 
+
+
+
+
+
+    public bool interacted;
     private void Awake()
     {
         if (controls == null)
@@ -31,6 +37,12 @@ public class PlayerInputHandler : MonoBehaviour
 
         controls.Movement.Sprint.started += OnSprintStarted;
         controls.Movement.Sprint.canceled += OnSprintCanceled;
+
+
+
+        controls.Other.Enable();
+        controls.Other.Interact.performed += OnInteractPerformed;
+        controls.Other.Interact.canceled += OnInteractCanceled;
     }
     
 
@@ -42,6 +54,12 @@ public class PlayerInputHandler : MonoBehaviour
         controls.Movement.Sprint.canceled -= OnSprintCanceled;
         controls.Movement.Disable();
 
+
+
+        
+        controls.Other.Interact.performed -= OnInteractPerformed;
+        controls.Other.Interact.canceled -= OnInteractCanceled;
+        controls.Other.Disable();
     }
 
     
@@ -74,5 +92,16 @@ public class PlayerInputHandler : MonoBehaviour
     private void OnSprintCanceled(InputAction.CallbackContext context)
     {
         sprintHeld = false;
+    }
+
+
+    private void OnInteractPerformed(InputAction.CallbackContext context)
+    {
+        interacted = true;
+    }
+
+    private void OnInteractCanceled(InputAction.CallbackContext context)
+    {
+        interacted = false;
     }
 }
