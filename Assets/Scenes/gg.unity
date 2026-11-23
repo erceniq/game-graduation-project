@@ -239,7 +239,7 @@ Transform:
   m_GameObject: {fileID: 208270118}
   serializedVersion: 2
   m_LocalRotation: {x: 0.15212335, y: 0.0000000559005, z: -0.000000008603908, w: 0.98836154}
-  m_LocalPosition: {x: 0, y: 6.4770064, z: -12.169429}
+  m_LocalPosition: {x: 0, y: 11.330399, z: -27.56242}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -927,7 +927,7 @@ Transform:
   m_GameObject: {fileID: 1235368242}
   serializedVersion: 2
   m_LocalRotation: {x: 0.15212335, y: 0.00000005547272, z: -0.000000005824581, w: 0.98836154}
-  m_LocalPosition: {x: 0, y: 6.4770064, z: -12.169429}
+  m_LocalPosition: {x: 0, y: 11.330399, z: -27.56242}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -953,7 +953,7 @@ MonoBehaviour:
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
   OrbitStyle: 0
-  Radius: 12.76
+  Radius: 28.9
   Orbits:
     Top:
       Radius: 2
@@ -1369,6 +1369,66 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1405370999075508247, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1405370999075508247, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1405370999075508247, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1405370999075508247, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1405370999075508247, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 119.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1405370999075508247, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -59.47
+      objectReference: {fileID: 0}
+    - target: {fileID: 2519771304433398342, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: m_fontSize
+      value: 35
+      objectReference: {fileID: 0}
+    - target: {fileID: 2519771304433398342, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: m_fontStyle
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2519771304433398342, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: m_fontColor.b
+      value: 0.8867924
+      objectReference: {fileID: 0}
+    - target: {fileID: 2519771304433398342, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: m_fontColor.g
+      value: 0.7996425
+      objectReference: {fileID: 0}
+    - target: {fileID: 2519771304433398342, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: m_fontColor.r
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2519771304433398342, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 35
+      objectReference: {fileID: 0}
+    - target: {fileID: 2519771304433398342, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4293053440
+      objectReference: {fileID: 0}
+    - target: {fileID: 2519771304433398342, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: m_VerticalAlignment
+      value: 512
+      objectReference: {fileID: 0}
+    - target: {fileID: 2519771304433398342, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 3081237232643226250, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
       propertyPath: m_Name
       value: player
@@ -1430,9 +1490,33 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1102348741}
     - target: {fileID: 7937594663848180858, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: damageText
+      value: 
+      objectReference: {fileID: 443428458711422928, guid: a7cf56416abd02947bad02b4c50c99a4, type: 3}
+    - target: {fileID: 7937594663848180858, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: bulletTrailPrefab
+      value: 
+      objectReference: {fileID: 5374805617866505962, guid: 3e1f0676e7dce6542aeb1b99a9722eb1, type: 3}
+    - target: {fileID: 7937594663848180858, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
       propertyPath: enemyLayer.m_Bits
       value: 256
       objectReference: {fileID: 0}
+    - target: {fileID: 7937594663848180858, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: gunsList.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7937594663848180858, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: 'gunsList.Array.data[0]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 3a91f60a40177694f8869a7ef820faab, type: 2}
+    - target: {fileID: 7937594663848180858, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: 'gunsList.Array.data[1]'
+      value: 
+      objectReference: {fileID: 11400000, guid: d0918bef0acc84946b3c88fd300e4234, type: 2}
+    - target: {fileID: 7937594663848180858, guid: 064daa39be2bc644db71d6057aa50841, type: 3}
+      propertyPath: 'gunsList.Array.data[2]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 7cc5944d0388c2d45a9d92a28d54c2fb, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:

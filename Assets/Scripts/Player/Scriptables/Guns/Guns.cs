@@ -20,7 +20,7 @@ public class Guns : ScriptableObject
     public float gunSpread;
 
 
-
+    public ParticleSystem gunParticle;
     public AudioClip gunSound;
    
 }

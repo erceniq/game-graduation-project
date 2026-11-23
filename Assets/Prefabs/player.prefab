@@ -246,6 +246,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0115932c37e0fbf4cbe21d5a7bada19a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInputHandler
+  interacted: 0
+  gunShooting: 0
 --- !u!114 &6754239960978640137
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -264,6 +266,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   moveSpeedMax: 10
+  speedMultiplier: 1
   airSpeedMax: 7
   smoothTime: 0.09
   airSmoothTime: 0.3
@@ -276,6 +279,7 @@ MonoBehaviour:
   jumpPower: 0
   jumpRemaining: 1
   jumpPowerModifier: 65
+  jumpMultiplier: 1
   jumpTimerGoing: 0
   hitHead: 0
   rayCastDistance: 1
@@ -300,6 +304,7 @@ MonoBehaviour:
   SecondTresholdEnergy: 0
   currentEnergy: 100
   autoEnergyGain: 5
+  normalEnergyGain: 5
   currentEnergyLevel: 0
   sprint: {fileID: 11400000, guid: 6dab84eaf9e9fc94d80187af8416f4fe, type: 2}
   energyText: {fileID: 2519771304433398342}
@@ -486,6 +491,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 264525567f0282a47bc3fe738c25a3d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerGun
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  gunTip: {fileID: 0}
+  guns: {fileID: 0}
 --- !u!1 &8288007799969829036
 GameObject:
   m_ObjectHideFlags: 0

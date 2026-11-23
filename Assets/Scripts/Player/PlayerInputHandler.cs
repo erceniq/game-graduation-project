@@ -19,8 +19,10 @@ public class PlayerInputHandler : MonoBehaviour
 
     //gun
     public bool gunShooting;
-
-
+    //demo
+    public bool pressed1;
+    public bool pressed2;
+    public bool pressed3;
     private void Awake()
     {
         if (controls == null)
@@ -50,6 +52,14 @@ public class PlayerInputHandler : MonoBehaviour
         controls.Guns.Enable();
         controls.Guns.Shoot.started += OnGunShotStarted;
         controls.Guns.Shoot.canceled += OnGunShotCanceled;
+
+        //demo
+        controls.Guns._1.performed += On1Performed;
+        controls.Guns._1.canceled += On1Canceled;
+        controls.Guns._2.performed += On2Performed;
+        controls.Guns._2.canceled += On2Canceled;
+        controls.Guns._3.performed += On3Performed;
+        controls.Guns._3.canceled += On3Canceled;
     }
     
 
@@ -71,11 +81,20 @@ public class PlayerInputHandler : MonoBehaviour
 
         controls.Guns.Shoot.started -= OnGunShotStarted;
         controls.Guns.Shoot.canceled -= OnGunShotCanceled;
+
+
+        //demo
+        controls.Guns._1.performed -= On1Performed;
+        controls.Guns._1.canceled -= On1Canceled;
+        controls.Guns._2.performed -= On2Performed;
+        controls.Guns._2.canceled -= On2Canceled;
+        controls.Guns._3.performed -= On3Performed;
+        controls.Guns._3.canceled -= On3Canceled;
+
         controls.Guns.Disable();
     }
 
     
-
     private void Update()
     {
         moveInput = controls.Movement.Move.ReadValue<Vector2>();
@@ -128,4 +147,40 @@ public class PlayerInputHandler : MonoBehaviour
     {
         gunShooting = false;
     }
+
+
+
+    //demo
+
+    private void On3Canceled(InputAction.CallbackContext context)
+    {
+        pressed3 = false;
+    }
+
+    private void On3Performed(InputAction.CallbackContext context)
+    {
+        pressed3 = true;
+    }
+
+    private void On2Canceled(InputAction.CallbackContext context)
+    {
+        pressed2 = false;
+    }
+
+    private void On2Performed(InputAction.CallbackContext context)
+    {
+        pressed2 = true;
+    }
+
+    private void On1Canceled(InputAction.CallbackContext context)
+    {
+        pressed1 = false;
+    }
+
+    private void On1Performed(InputAction.CallbackContext context)
+    {
+        pressed1 = true;
+    }
+
+
 }
