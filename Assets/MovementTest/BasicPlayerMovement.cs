@@ -55,9 +55,17 @@ public class LeftRightJump : MonoBehaviour
     public bool IsAttacking => combatState != CombatState.None;
     public CombatState CurrentCombatState => combatState;
 
+    private void EnsureInputMap()
+    {
+        if (inputMap == null)
+        {
+            inputMap = new InputMap();
+        }
+    }
+
     void Awake()
     {
-        inputMap = new InputMap();
+        EnsureInputMap();
         characterController = GetComponent<CharacterController>();
         animator = GetComponentInChildren<Animator>();
         zPositionLock = transform.position.z;
@@ -66,12 +74,16 @@ public class LeftRightJump : MonoBehaviour
 
     void OnEnable()
     {
+        EnsureInputMap();
         inputMap.Player.Enable();
     }
 
     void OnDisable()
     {
-        inputMap.Player.Disable();
+        if (inputMap != null)
+        {
+            inputMap.Player.Disable();
+        }
         ResetCombatState();
     }
 
@@ -99,6 +111,7 @@ public class LeftRightJump : MonoBehaviour
 
     void Update()
     {
+        EnsureInputMap();
         EnsureAnimatorController();
 
         float horizontal = inputMap.Player.LeftRight.ReadValue<float>();
