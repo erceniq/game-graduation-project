@@ -6,20 +6,21 @@ using UnityEngine.InputSystem;
 public class PlayerInputHandler : MonoBehaviour
 {
     private PlayerInputActions controls;
-
+    //movement
     public Vector2 moveInput { get; private set; }
     public bool jumpPressed { get; private set; }
     public bool jumpHeld { get; private set; }
 
     public bool sprintHeld { get; private set; }
 
-
-
-
-
-
+    //interaction
 
     public bool interacted;
+
+    //gun
+    public bool gunShooting;
+
+
     private void Awake()
     {
         if (controls == null)
@@ -43,6 +44,12 @@ public class PlayerInputHandler : MonoBehaviour
         controls.Other.Enable();
         controls.Other.Interact.performed += OnInteractPerformed;
         controls.Other.Interact.canceled += OnInteractCanceled;
+
+
+
+        controls.Guns.Enable();
+        controls.Guns.Shoot.started += OnGunShotStarted;
+        controls.Guns.Shoot.canceled += OnGunShotCanceled;
     }
     
 
@@ -60,6 +67,11 @@ public class PlayerInputHandler : MonoBehaviour
         controls.Other.Interact.performed -= OnInteractPerformed;
         controls.Other.Interact.canceled -= OnInteractCanceled;
         controls.Other.Disable();
+
+
+        controls.Guns.Shoot.started -= OnGunShotStarted;
+        controls.Guns.Shoot.canceled -= OnGunShotCanceled;
+        controls.Guns.Disable();
     }
 
     
@@ -103,5 +115,17 @@ public class PlayerInputHandler : MonoBehaviour
     private void OnInteractCanceled(InputAction.CallbackContext context)
     {
         interacted = false;
+    }
+
+
+
+    private void OnGunShotStarted(InputAction.CallbackContext context)
+    {
+        gunShooting = true;
+    }
+
+    private void OnGunShotCanceled(InputAction.CallbackContext context)
+    {
+        gunShooting = false;
     }
 }

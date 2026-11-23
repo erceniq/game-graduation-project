@@ -3,13 +3,29 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 public class PlayerGun : MonoBehaviour
 {
+    [Header("Essentials")]
+    PlayerInputHandler inputHandler;
+    public LayerMask enemyLayer;
 
+    [Header("Gun Stuff")]
+    [SerializeField] Transform gunTip;
+    public Guns guns;
+    float currentfireRate;
+    float fireTimer;
+    bool gunShot;
 
-
+    private void Start()
+    {
+        inputHandler = GetComponentInParent<PlayerInputHandler>();
+        currentfireRate = guns.gunFireRate;
+        fireTimer= 1/currentfireRate;
+    }
 
     private void Update()
     {
         Aim();
+        GunFireRate();
+        GunShoot();
     }
 
 
@@ -37,4 +53,31 @@ public class PlayerGun : MonoBehaviour
         }
 
     }   
+
+
+
+    private void GunFireRate()
+    {
+        if (fireTimer > 0)
+        {
+            fireTimer -= Time.deltaTime;
+        }
+
+    }
+
+    private void GunShoot()
+    {
+        if(inputHandler.gunShooting&& fireTimer <= 0&&!gunShot)
+        {
+            float randomRangeY = UnityEngine.Random.Range(-guns.gunSpread,guns.gunSpread);
+            Vector3 direction = gunTip.forward + new Vector3(0,randomRangeY,0);
+
+            RaycastHit hit;
+            if (Physics.Raycast(gunTip.position, direction, out hit,guns.gunRange, enemyLayer))
+
+            Debug.Log("pow");
+            fireTimer = 1 / currentfireRate;
+
+        }
+    }
 }

@@ -145,6 +145,35 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "Guns",
+            "id": "af438d9f-1a3d-46a1-a239-55bb480bf9a3",
+            "actions": [
+                {
+                    "name": "Shoot",
+                    "type": "Button",
+                    "id": "993bb62a-8d9b-4bd2-bbbb-654af0dc55c1",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "83532002-a567-4c9a-a024-28f5f46b0ad3",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Shoot",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": []
