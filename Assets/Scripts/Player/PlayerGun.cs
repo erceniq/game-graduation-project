@@ -5,6 +5,7 @@ public class PlayerGun : MonoBehaviour
 {
     [Header("Essentials")]
     PlayerInputHandler inputHandler;
+    PlayerEnergy playerEnergy;
     public LayerMask enemyLayer;
 
     [Header("Gun Stuff")]
@@ -13,10 +14,14 @@ public class PlayerGun : MonoBehaviour
     float currentfireRate;
     float fireTimer;
     bool gunShot;
+    [Header("Effects")]
+    AudioSource audioSource;
 
     private void Start()
     {
+        audioSource = GetComponent<AudioSource>();
         inputHandler = GetComponentInParent<PlayerInputHandler>();
+        playerEnergy = GetComponentInParent<PlayerEnergy>();
         currentfireRate = guns.gunFireRate;
         fireTimer= 1/currentfireRate;
     }
@@ -67,16 +72,48 @@ public class PlayerGun : MonoBehaviour
 
     private void GunShoot()
     {
-        if(inputHandler.gunShooting&& fireTimer <= 0&&!gunShot)
+        if(inputHandler.gunShooting&& Time.time >= fireTimer && !gunShot)
         {
-            float randomRangeY = UnityEngine.Random.Range(-guns.gunSpread,guns.gunSpread);
-            Vector3 direction = gunTip.forward + new Vector3(0,randomRangeY,0);
+            playerEnergy.GunEnergyUsage(guns.gunEnergyDrain);
+            audioSource.PlayOneShot(guns.gunSound);
 
-            RaycastHit hit;
-            if (Physics.Raycast(gunTip.position, direction, out hit,guns.gunRange, enemyLayer))
+            
 
-            Debug.Log("pow");
-            fireTimer = 1 / currentfireRate;
+            switch (guns.gunType)
+            {
+
+
+                case GunType.Automatic:
+                    
+                    float randomRangeY = UnityEngine.Random.Range(-guns.gunSpread, guns.gunSpread);
+                    Vector3 direction = gunTip.forward + new Vector3(0, randomRangeY, 0);
+
+
+                    RaycastHit hit;
+                    if (Physics.Raycast(gunTip.position, direction, out hit, guns.gunRange, enemyLayer)) { }
+
+                    
+                    break;
+
+                case GunType.Shotgun:
+
+                    for (int i = 0; i < guns.gunProjectileNumber; i++)
+                    {
+                        float randomRangeY2 = UnityEngine.Random.Range(-guns.gunSpread, guns.gunSpread);
+                        Vector3 direction2 = gunTip.forward + new Vector3(0, randomRangeY2, 0);
+
+                        RaycastHit hit2;
+                        if (Physics.Raycast(gunTip.position, direction2, out hit2, guns.gunRange, enemyLayer)) { }
+                    }
+
+                    break;
+            }
+
+            fireTimer = Time.time +( 1 / currentfireRate);
+
+
+
+
 
         }
     }

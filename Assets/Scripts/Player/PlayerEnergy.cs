@@ -28,13 +28,15 @@ public class PlayerEnergy : MonoBehaviour
 
 
 
-    [Header("PlayerMovement Reference")]
+    [Header("Reference")]
     public PlayerMovement playerMovement;
+
 
 
     private void Start()
     {
         autoEnergyGain= normalEnergyGain;
+
     }
 
 
@@ -59,7 +61,7 @@ public class PlayerEnergy : MonoBehaviour
                 break;
             case EnergyLevel.Low:
                 playerMovement.speedMultiplier = 0.5f;
-                playerMovement.jumpMultiplier = 0.5f;
+                playerMovement.jumpMultiplier = 0.7f;
                 autoEnergyGain = normalEnergyGain / 2;
                 break;
             case EnergyLevel.Zero:
@@ -98,16 +100,18 @@ public class PlayerEnergy : MonoBehaviour
 
     private void EnergyChange()
     {
-
+        //autogain
         currentEnergy = currentEnergy + autoEnergyGain * Time.deltaTime;
         if (currentEnergy > maxEnergy) currentEnergy = maxEnergy;
 
-
+        //sprint
         if (playerMovement.isSprinting)
         {
             if (currentEnergy <= 0) return;
             currentEnergy = currentEnergy-sprint.energyCost*Time.deltaTime;
         }
+
+        
 
         UpdateEnergyUI();
     }
@@ -118,5 +122,12 @@ public class PlayerEnergy : MonoBehaviour
         {
             energyText.text = $"Energy: {currentEnergy:F1} / {maxEnergy}";
         }
+    }
+
+    public void GunEnergyUsage(float energycost)
+    {
+        Debug.Log("real");
+        currentEnergy  -= energycost;
+        UpdateEnergyUI();
     }
 }
