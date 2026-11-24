@@ -7321,6 +7321,9 @@ MonoBehaviour:
   combo3Telegraph: 0.7
   combo3Active: 0.28
   combo3Recovery: 0.6
+  parryChance: 0.35
+  parryCooldown: 3.5
+  parryStanceDuration: 0.65
   weaponHitbox: {fileID: 3432371095939242914}
   hurtbox: {fileID: 7053285421085052812}
   ragdollController: {fileID: 1496155264776682863}

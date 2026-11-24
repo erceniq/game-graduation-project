@@ -232,6 +232,48 @@ namespace HUMAN.Combat
         }
         #endregion
 
+        #region PARRY STANCE GLOW
+        /// <summary>
+        /// Düşman savunma/parry duruşuna geçtiğinde altın/amber renginde görsel bir parlama sağlar.
+        /// </summary>
+        public void TriggerParryStanceGlow(GameObject target, float duration)
+        {
+            if (target == null) return;
+            StartCoroutine(ParryStanceGlowRoutine(target, duration));
+        }
+
+        private IEnumerator ParryStanceGlowRoutine(GameObject target, float duration)
+        {
+            if (target == null) yield break;
+
+            Renderer[] renderers = target.GetComponentsInChildren<Renderer>();
+            if (renderers.Length == 0) yield break;
+
+            // Altın / Turuncu (Amber HDR) Parlama
+            Color parryGlowColor = new Color(2.8f, 1.6f, 0.2f, 1f);
+            MaterialPropertyBlock glowBlock = new MaterialPropertyBlock();
+            glowBlock.SetColor(BaseColorId, parryGlowColor);
+            glowBlock.SetColor(ColorId, parryGlowColor);
+            glowBlock.SetColor(EmissionColorId, parryGlowColor);
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                if (renderers[i] != null) renderers[i].SetPropertyBlock(glowBlock);
+            }
+
+            yield return new WaitForSecondsRealtime(duration);
+
+            if (target != null)
+            {
+                MaterialPropertyBlock clearBlock = new MaterialPropertyBlock();
+                for (int i = 0; i < renderers.Length; i++)
+                {
+                    if (renderers[i] != null) renderers[i].SetPropertyBlock(clearBlock);
+                }
+            }
+        }
+        #endregion
+
         #region PROCEDURAL PARTICLES (PARRY & IMPACT SPARKS)
         public void SpawnParrySparks(Vector3 position)
         {

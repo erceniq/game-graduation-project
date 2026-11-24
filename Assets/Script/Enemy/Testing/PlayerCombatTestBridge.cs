@@ -226,11 +226,17 @@ namespace HUMAN.Enemy.Testing
                         IsParryable = false
                     };
 
+                    var enemyBrain = hit.GetComponentInParent<EnemyBrain>();
+                    bool enemyParrying = enemyBrain != null && enemyBrain.IsParryStanceActive;
+
                     damageable.TakeDamage(dmg);
                     hitAny = true;
 
-                    // Görsel & Hissiyat Geri Bildirimi: Yalnızca temas anında Hit Flash + Kıvılcım + Titreşim
-                    CombatFeedbackController.Instance.TriggerEnemyHitFeedback(rootObj, contactPoint, dmg.HitDirection);
+                    // Görsel & Hissiyat Geri Bildirimi: Yalnızca düşman parry yapmadığı durumlarda normal Hit Flash tetikle
+                    if (!enemyParrying && CombatFeedbackController.Instance != null)
+                    {
+                        CombatFeedbackController.Instance.TriggerEnemyHitFeedback(rootObj, contactPoint, dmg.HitDirection);
+                    }
 
                     Debug.Log($"<color=yellow>[PlayerCombatTest] Düşmana vuruldu (Kombo #{comboStep}): {hit.name} -> {calculatedDmg:F1} Hasar, {calculatedPoise:F1} Poise!</color>");
                 }

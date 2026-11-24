@@ -435,6 +435,18 @@ public class LeftRightJump : MonoBehaviour
         landTimer = 0f;
     }
 
+    /// <summary>
+    /// Oyuncunun kombo saldırısını zorla ve anında keser (örneğin düşman başarılı parry yaptığında).
+    /// </summary>
+    public void InterruptAttack()
+    {
+        ResetCombatState();
+        if (EnsureAnimatorController() && characterController != null && characterController.isGrounded)
+        {
+            animator.CrossFadeInFixedTime("Idle", 0.08f);
+        }
+    }
+
     private void UpdateLocomotion(float horizontal, bool jumpPressed, bool isParrying)
     {
         bool isGrounded = characterController.isGrounded;

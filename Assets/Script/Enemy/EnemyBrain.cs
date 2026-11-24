@@ -76,6 +76,14 @@ namespace HUMAN.Enemy
         [SerializeField] private float combo3Active = 0.28f;
         [SerializeField] private float combo3Recovery = 0.60f;
 
+        [Header("Parry & Riposte Settings")]
+        [Tooltip("Düşmanın gelen oyuncu saldırısını savuşturma olasılığı (0-1)")]
+        [SerializeField] private float parryChance = 0.35f;
+        [Tooltip("Parry denemeleri arasındaki bekleme süresi")]
+        [SerializeField] private float parryCooldown = 3.5f;
+        [Tooltip("Düşmanın savunma duruşunda kalma süresi")]
+        [SerializeField] private float parryStanceDuration = 0.65f;
+
         [Header("Combat Components")]
         [SerializeField] private Hitbox weaponHitbox;
         [SerializeField] private Hurtbox hurtbox;
@@ -87,6 +95,9 @@ namespace HUMAN.Enemy
         private Rigidbody rb;
         private float zPositionLock;
         private float knockbackVelocityX = 0f;
+        private float parryCooldownTimer = 0f;
+        private bool isParryStanceActive = false;
+        private LeftRightJump cachedPlayerMovement;
         public Vector3 LastHitDirection { get; private set; } = Vector3.left;
 
         // FSM
@@ -95,6 +106,7 @@ namespace HUMAN.Enemy
         public EnemyPatrolState PatrolState { get; private set; }
         public EnemyChaseState ChaseState { get; private set; }
         public EnemyAttackState AttackState { get; private set; }
+        public EnemyParryState ParryState { get; private set; }
         public EnemyStaggerState StaggerState { get; private set; }
         public EnemyDeathState DeathState { get; private set; }
 
@@ -120,6 +132,11 @@ namespace HUMAN.Enemy
         public float MinSeparationDistance => minSeparationDistance;
         public float NormalHitKnockback => normalHitKnockback;
         public float HeavyHitKnockback => heavyHitKnockback;
+        public float ParryChance => parryChance;
+        public float ParryCooldown => parryCooldown;
+        public float ParryStanceDuration => parryStanceDuration;
+        public bool IsParryStanceActive => isParryStanceActive;
+        public void SetParryStanceActive(bool active) => isParryStanceActive = active;
 
         public event Action<float, float> OnHealthChanged;
         public event Action OnDeath;
@@ -196,6 +213,7 @@ namespace HUMAN.Enemy
             PatrolState = new EnemyPatrolState(this, StateMachine);
             ChaseState = new EnemyChaseState(this, StateMachine);
             AttackState = new EnemyAttackState(this, StateMachine);
+            ParryState = new EnemyParryState(this, StateMachine, parryStanceDuration);
             StaggerState = new EnemyStaggerState(this, StateMachine);
             DeathState = new EnemyDeathState(this, StateMachine);
 
@@ -251,10 +269,69 @@ namespace HUMAN.Enemy
         private void Update()
         {
             if (!isAlive) return;
+
+            if (parryCooldownTimer > 0f)
+            {
+                parryCooldownTimer -= Time.deltaTime;
+            }
+
+            CheckPlayerAttackForParry();
             UpdateKnockback(Time.deltaTime);
             ResolveAntiOverlap(Time.deltaTime);
             StateMachine.Tick(Time.deltaTime);
             LockZPosition();
+        }
+
+        /// <summary>
+        /// Oyuncu yakın menzildeyken bir saldırı başlattığında şansa bağlı olarak savunma/parry duruşuna geçer.
+        /// </summary>
+        private void CheckPlayerAttackForParry()
+        {
+            if (!isAlive || parryCooldownTimer > 0f || isParryStanceActive) return;
+
+            // Düşman Stagger veya Death durumundaysa parry yapamaz
+            if (StateMachine == null || StateMachine.CurrentState is EnemyStaggerState || StateMachine.CurrentState is EnemyDeathState)
+            {
+                return;
+            }
+
+            if (target == null) return;
+
+            // Oyuncunun yakın menzilde olup olmadığını kontrol et
+            float dist = GetHorizontalDistanceToTarget();
+            if (dist > attackRadius + 0.6f) return;
+
+            if (cachedPlayerMovement == null)
+            {
+                cachedPlayerMovement = target.GetComponent<LeftRightJump>();
+                if (cachedPlayerMovement == null)
+                {
+                    cachedPlayerMovement = target.GetComponentInParent<LeftRightJump>();
+                }
+            }
+
+            // Oyuncu saldırı animasyonunda/vuruşunda mı?
+            if (cachedPlayerMovement != null && cachedPlayerMovement.IsAttacking)
+            {
+                parryCooldownTimer = parryCooldown;
+
+                // Belirlenen parryChance oranına göre savuşturma duruşuna geç
+                if (UnityEngine.Random.value <= parryChance)
+                {
+                    StateMachine.ChangeState(ParryState);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Düşman savunma duruşuna geçtiğinde altın/amber renginde görsel savunma parlamasını tetikler.
+        /// </summary>
+        public void ShowParryStanceVisual(float duration)
+        {
+            if (CombatFeedbackController.Instance != null)
+            {
+                CombatFeedbackController.Instance.TriggerParryStanceGlow(gameObject, duration);
+            }
         }
 
         private void FixedUpdate()
@@ -419,6 +496,13 @@ namespace HUMAN.Enemy
         {
             if (!isAlive) return;
 
+            // 1. Düşman savunma duruşundaysa (Parry Stance) oyuncunun saldırısını savuştur!
+            if (isParryStanceActive)
+            {
+                HandleSuccessfulParry(damage);
+                return;
+            }
+
             if (damage.HitDirection != Vector3.zero)
             {
                 LastHitDirection = damage.HitDirection;
@@ -441,8 +525,47 @@ namespace HUMAN.Enemy
             }
         }
 
+        private void HandleSuccessfulParry(DamageData damage)
+        {
+            isParryStanceActive = false;
+
+            // 1. Görsel & Hissiyat: Hitstop + Kamera Sarsıntısı + Savuşturma Kıvılcımları
+            Vector3 sparkPos = damage.HitPoint != Vector3.zero 
+                ? damage.HitPoint 
+                : (transform.position + Vector3.up * 1.2f);
+
+            if (CombatFeedbackController.Instance != null)
+            {
+                CombatFeedbackController.Instance.TriggerParryFeedback(sparkPos);
+            }
+
+            // 2. Oyuncunun saldırısını anında kes ve X ekseninde geri savur
+            if (damage.Instigator != null)
+            {
+                var playerMovement = damage.Instigator.GetComponent<LeftRightJump>();
+                if (playerMovement == null)
+                {
+                    playerMovement = damage.Instigator.GetComponentInParent<LeftRightJump>();
+                }
+
+                if (playerMovement != null)
+                {
+                    playerMovement.InterruptAttack();
+                    float knockbackDir = Mathf.Sign(damage.Instigator.transform.position.x - transform.position.x);
+                    playerMovement.ApplyKnockback(knockbackDir, 5.5f);
+                }
+            }
+
+            Debug.Log("<color=orange><b>[EnemyBrain] DÜŞMAN PARRY YAPTI! Oyuncunun saldırısı savuşturuldu, Karşı Saldırı (Riposte) başlatılıyor!</b></color>");
+
+            // 3. Düşman anında hızlı Karşı Saldırıya (Riposte) geçer
+            AttackState.TriggerRiposte();
+        }
+
         public void TakePoiseDamage(float poiseDamage)
         {
+            if (isParryStanceActive) return;
+
             if (poiseSystem != null)
             {
                 poiseSystem.TakePoiseDamage(poiseDamage);

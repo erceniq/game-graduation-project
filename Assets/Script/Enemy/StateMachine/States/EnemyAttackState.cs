@@ -22,16 +22,57 @@ namespace HUMAN.Enemy.StateMachine.States
         private AttackPhase currentPhase;
         private float phaseTimer;
         private int currentComboStep = 1;
+        private bool isRiposte = false;
 
         public int CurrentComboStep => currentComboStep;
+        public bool IsRiposte => isRiposte;
 
         public EnemyAttackState(EnemyBrain brain, EnemyStateMachine stateMachine) : base(brain, stateMachine) { }
+
+        public void TriggerRiposte()
+        {
+            isRiposte = true;
+            if (stateMachine.CurrentState == this)
+            {
+                isRiposte = false;
+                StartRiposteStep();
+            }
+            else
+            {
+                stateMachine.ChangeState(this);
+            }
+        }
 
         public override void Enter()
         {
             brain.StopMovement();
             currentComboStep = 1;
-            StartComboStep(currentComboStep);
+
+            if (isRiposte)
+            {
+                isRiposte = false;
+                StartRiposteStep();
+            }
+            else
+            {
+                StartComboStep(currentComboStep);
+            }
+        }
+
+        private void StartRiposteStep()
+        {
+            currentComboStep = 1;
+            currentPhase = AttackPhase.Telegraph;
+            // Hızlı karşı saldırı (0.28s hazırlık süresi, oyuncunun refleksle parry yapabilmesi için adil pencere)
+            phaseTimer = 0.28f;
+
+            if (brain.WeaponHitbox != null)
+            {
+                brain.WeaponHitbox.SetDamage(25f, 25f, parryable: true);
+            }
+
+            brain.LookAtTarget();
+            brain.NotifyAttackComboStep(1);
         }
 
         private void StartComboStep(int step)

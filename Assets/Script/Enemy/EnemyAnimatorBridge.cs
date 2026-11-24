@@ -163,6 +163,11 @@ namespace HUMAN.Enemy
                 SetParameterFloat("Speed", 0f);
                 HandleAttackComboStep(attackState.CurrentComboStep);
             }
+            else if (newState is EnemyParryState)
+            {
+                SetParameterFloat("Speed", 0f);
+                CrossFadeSafe(idleStateName, 0.08f);
+            }
             else if (newState is EnemyStaggerState)
             {
                 SetParameterFloat("Speed", 0f);
