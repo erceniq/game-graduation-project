@@ -354,7 +354,9 @@ MonoBehaviour:
   attack3TotalTime: 1.55
   jumpAttackSlamSpeed: -12
   jumpAttackLandRecovery: 0.25
+  minSeparationDistance: 1.25
   knockbackDecay: 14
+  parryMaxLockDuration: 0.65
 --- !u!143 &213063227
 CharacterController:
   m_ObjectHideFlags: 0
@@ -389,7 +391,7 @@ Transform:
   m_GameObject: {fileID: 213063225}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0.5212273, y: 0.9200001, z: -0.030022874}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -416,6 +418,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   parryWindowDuration: 0.35
+  parryTotalDuration: 0.65
   maxHealth: 100
 --- !u!1 &242956458
 GameObject:
@@ -452,7 +455,7 @@ MonoBehaviour:
   poiseBreakHitstopScale: 0.05
   hitHitstopDuration: 0.04
   hitHitstopScale: 0.15
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 1190970215}
   parryShakeDuration: 0.18
   parryShakeIntensity: 0.22
   poiseBreakShakeDuration: 0.25
@@ -2333,7 +2336,7 @@ Transform:
   m_GameObject: {fileID: 1190970213}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0.07352036, y: -0.05454254, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4652,15 +4655,15 @@ PrefabInstance:
       objectReference: {fileID: 1307270702}
     - target: {fileID: 9114597644076885119, guid: f2e9c74282b0a174fbd59e8ddb7b505f, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 5.0212274
+      value: 2.5
       objectReference: {fileID: 0}
     - target: {fileID: 9114597644076885119, guid: f2e9c74282b0a174fbd59e8ddb7b505f, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.9200001
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9114597644076885119, guid: f2e9c74282b0a174fbd59e8ddb7b505f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.030022874
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9114597644076885119, guid: f2e9c74282b0a174fbd59e8ddb7b505f, type: 3}
       propertyPath: m_LocalRotation.w

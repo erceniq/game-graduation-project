@@ -6223,7 +6223,7 @@ Animator:
   m_Controller: {fileID: 9100000, guid: 3ef26997238b9024a9bad511d50e406c, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
-  m_ApplyRootMotion: 1
+  m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_AnimatePhysics: 0
@@ -7305,7 +7305,7 @@ MonoBehaviour:
   patrolSpeed: 1.8
   patrolWaypoints: []
   stoppingDistance: 1.45
-  minSeparationDistance: 1.15
+  minSeparationDistance: 1.25
   antiOverlapPushForce: 4
   normalHitKnockback: 3.5
   heavyHitKnockback: 7.5
@@ -7365,6 +7365,7 @@ MonoBehaviour:
   attack1StateName: Attack1
   attack2StateName: Attack2
   attack3StateName: Attack3
+  parryStateName: Parry
   locomotionCrossfade: 0.12
   attackCrossfade: 0.05
 --- !u!114 &2935119900081977804

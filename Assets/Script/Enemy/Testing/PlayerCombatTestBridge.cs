@@ -35,13 +35,18 @@ namespace HUMAN.Enemy.Testing
         [Tooltip("Parry penceresinin açık kalma süresi (saniye)")]
         [SerializeField] private float parryWindowDuration = 0.35f;
 
+        [Tooltip("Parry penceresi + toparlanma dahil toplam güvenlik zamanlayıcısı (failsafe timer)")]
+        [SerializeField] private float parryTotalDuration = 0.65f;
+
         [Header("Health")]
         [SerializeField] private float maxHealth = 100f;
 
         private float currentHealth;
         private bool isParryActive = false;
         private float parryTimer = 0f;
+        private float parryFailsafeTimer = 0f;
         private LeftRightJump leftRightJump;
+        private Animator playerAnimator;
 
         public bool IsAlive
         {
@@ -73,6 +78,11 @@ namespace HUMAN.Enemy.Testing
             if (leftRightJump == null)
             {
                 leftRightJump = GetComponent<LeftRightJump>();
+            }
+
+            if (playerAnimator == null)
+            {
+                playerAnimator = GetComponentInChildren<Animator>();
             }
 
             // Düşmanın Player etiketini algılayabilmesini garantiye al
@@ -132,15 +142,22 @@ namespace HUMAN.Enemy.Testing
 #endif
 
             // Sağ Tık ile savuşturma (Parry) penceresini aç
-            // Animation Commitment: Oyuncu bir saldırı animasyonu oynatırken (IsAttacking) parry yapılamaz
+            // Animation Commitment: Oyuncu bir saldırı animasyonu oynatırken (IsAttacking) veya parry animasyonu devam ederken yeni bir parry yapılamaz
             bool isAttacking = leftRightJump != null && leftRightJump.IsAttacking;
-            if (parryPressed && !isParryActive && !isAttacking)
+            bool isParryAnimActive = (leftRightJump != null && leftRightJump.IsParryAnimationActive);
+            if (!isParryAnimActive && playerAnimator != null && playerAnimator.isActiveAndEnabled)
+            {
+                var state = playerAnimator.GetCurrentAnimatorStateInfo(0);
+                isParryAnimActive = state.IsName("Parry") || (playerAnimator.IsInTransition(0) && (playerAnimator.GetCurrentAnimatorStateInfo(0).IsName("Parry") || playerAnimator.GetNextAnimatorStateInfo(0).IsName("Parry")));
+            }
+
+            if (parryPressed && !isParryActive && !isAttacking && !isParryAnimActive)
             {
                 ActivateParry();
             }
 
             // Eğer LeftRightJump bağlı DEĞİLSE bağımsız test için doğrudan saldırı yap
-            if (leftRightJump == null && attackPressed)
+            if (leftRightJump == null && attackPressed && !isParryActive && !isParryAnimActive)
             {
                 PerformAttack(1.0f, 1.0f, 1);
             }
@@ -252,17 +269,57 @@ namespace HUMAN.Enemy.Testing
         {
             isParryActive = true;
             parryTimer = parryWindowDuration;
-            Debug.Log($"<color=cyan>[PlayerCombatTest] PARRY DURAĞI AKTİF! ({parryWindowDuration}s boyunca gelen saldırılar savuşturulur)</color>");
+            parryFailsafeTimer = parryTotalDuration;
+            if (leftRightJump != null)
+            {
+                leftRightJump.TriggerParry();
+            }
+            else
+            {
+                if (playerAnimator != null)
+                {
+                    playerAnimator.ResetTrigger("Parry");
+                    playerAnimator.SetTrigger("Parry");
+                    playerAnimator.SetBool("IsBlocking", true);
+                    playerAnimator.CrossFadeInFixedTime("Parry", 0.05f);
+                }
+            }
+            Debug.Log($"<color=cyan>[PlayerCombatTest] PARRY DURAĞI AKTİF! ({parryWindowDuration}s pencere, {parryTotalDuration}s toparlanma/failsafe)</color>");
         }
 
         private void HandleParryTimer()
         {
-            if (!isParryActive) return;
-
-            parryTimer -= Time.deltaTime;
-            if (parryTimer <= 0f)
+            // 1. Savuşturma penceresi (0.35s)
+            if (isParryActive)
             {
-                isParryActive = false;
+                parryTimer -= Time.deltaTime;
+                if (parryTimer <= 0f)
+                {
+                    isParryActive = false;
+                }
+            }
+
+            // 2. Güvenlik ve toparlanma zamanlayıcısı (failsafe timer - 0.65s)
+            if (parryFailsafeTimer > 0f)
+            {
+                parryFailsafeTimer -= Time.deltaTime;
+                if (parryFailsafeTimer <= 0f)
+                {
+                    isParryActive = false;
+                    if (leftRightJump != null)
+                    {
+                        leftRightJump.EndParry();
+                    }
+                    else
+                    {
+                        if (playerAnimator != null)
+                        {
+                            playerAnimator.SetBool("IsBlocking", false);
+                            playerAnimator.ResetTrigger("Parry");
+                            playerAnimator.CrossFadeInFixedTime("Idle", 0.10f);
+                        }
+                    }
+                }
             }
         }
 
@@ -311,6 +368,17 @@ namespace HUMAN.Enemy.Testing
                 }
 
                 isParryActive = false;
+                parryFailsafeTimer = 0f;
+                if (leftRightJump != null)
+                {
+                    leftRightJump.EndParry();
+                }
+                else if (playerAnimator != null)
+                {
+                    playerAnimator.SetBool("IsBlocking", false);
+                    playerAnimator.ResetTrigger("Parry");
+                    playerAnimator.CrossFadeInFixedTime("Idle", 0.10f);
+                }
                 return true;
             }
 
@@ -321,6 +389,13 @@ namespace HUMAN.Enemy.Testing
         {
             if (!IsAlive) return;
 
+            if (isParryActive || parryFailsafeTimer > 0f)
+            {
+                isParryActive = false;
+                parryFailsafeTimer = 0f;
+                if (leftRightJump != null) leftRightJump.EndParry();
+            }
+
             currentHealth = Mathf.Max(0f, currentHealth - damage.Amount);
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
 
@@ -330,12 +405,24 @@ namespace HUMAN.Enemy.Testing
                 PlayerHUD.Instance.SetHealth(currentHealth);
             }
 
-            // Geri tepme (Knockback)
+            // Geri tepme (Knockback) - Her zaman saldıran düşmandan oyuncuya doğru (uzağa)
             if (leftRightJump != null)
             {
-                float pushDir = damage.HitDirection.x != 0f
-                    ? Mathf.Sign(damage.HitDirection.x)
-                    : (damage.Instigator != null ? Mathf.Sign(transform.position.x - damage.Instigator.transform.position.x) : -leftRightJump.FacingDirection);
+                float pushDir;
+                if (damage.Instigator != null)
+                {
+                    float deltaX = transform.position.x - damage.Instigator.transform.position.x;
+                    pushDir = Mathf.Abs(deltaX) > 0.01f ? Mathf.Sign(deltaX) : -leftRightJump.FacingDirection;
+                }
+                else if (damage.HitDirection.x != 0f)
+                {
+                    pushDir = Mathf.Sign(damage.HitDirection.x);
+                }
+                else
+                {
+                    pushDir = -leftRightJump.FacingDirection;
+                }
+
                 leftRightJump.ApplyKnockback(pushDir, 5.0f);
             }
 

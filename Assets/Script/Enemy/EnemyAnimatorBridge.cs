@@ -27,6 +27,7 @@ namespace HUMAN.Enemy
         [SerializeField] private string attack1StateName = "Attack1";
         [SerializeField] private string attack2StateName = "Attack2";
         [SerializeField] private string attack3StateName = "Attack3";
+        [SerializeField] private string parryStateName = "Parry";
 
         [Header("Transition Durations")]
         [SerializeField] private float locomotionCrossfade = 0.12f;
@@ -143,6 +144,13 @@ namespace HUMAN.Enemy
                 animator.speed = 1.0f;
             }
 
+            // Parry dışındaki durumlarda IsBlocking bayrağını ve tetikleyicileri kapat
+            if (!(newState is EnemyParryState))
+            {
+                SetParameterBool("IsBlocking", false);
+                ResetParameterTrigger("Parry");
+            }
+
             if (newState is EnemyIdleState)
             {
                 SetParameterFloat("Speed", 0f);
@@ -166,7 +174,10 @@ namespace HUMAN.Enemy
             else if (newState is EnemyParryState)
             {
                 SetParameterFloat("Speed", 0f);
-                CrossFadeSafe(idleStateName, 0.08f);
+                SetParameterBool("IsBlocking", true);
+                ResetParameterTrigger("Parry");
+                SetParameterTrigger("Parry");
+                CrossFadeSafe(parryStateName, 0.05f);
             }
             else if (newState is EnemyStaggerState)
             {
@@ -237,6 +248,14 @@ namespace HUMAN.Enemy
             if (animator != null && availableParams.Contains(paramName))
             {
                 animator.SetTrigger(paramName);
+            }
+        }
+
+        private void ResetParameterTrigger(string paramName)
+        {
+            if (animator != null && availableParams.Contains(paramName))
+            {
+                animator.ResetTrigger(paramName);
             }
         }
     }

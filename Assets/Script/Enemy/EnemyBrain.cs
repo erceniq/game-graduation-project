@@ -38,7 +38,7 @@ namespace HUMAN.Enemy
         [Tooltip("Düşmanın kovalarken oyuncudan ne kadar uzakta durup saldıracağı (X ekseni mesafesi)")]
         [SerializeField] private float stoppingDistance = 1.45f;
         [Tooltip("Karakterlerin silüetlerinin iç içe geçmemesi için izin verilen minimum mesafe")]
-        [SerializeField] private float minSeparationDistance = 1.15f;
+        [SerializeField] private float minSeparationDistance = 1.25f;
         [Tooltip("İç içe geçildiğinde karakteri dışa itme kuvveti")]
         [SerializeField] private float antiOverlapPushForce = 4.0f;
 
@@ -382,6 +382,17 @@ namespace HUMAN.Enemy
             // Eğer aktif bir knockback varsa hareket girdisi knockback'i ezmesin
             if (Mathf.Abs(knockbackVelocityX) > 0.15f) return;
 
+            // Hedefe doğru hareket ederken minSeparationDistance mesafesini koru
+            if (target != null && Mathf.Abs(destination.x - target.position.x) < 0.2f)
+            {
+                float distToTarget = Mathf.Abs(target.position.x - transform.position.x);
+                if (distToTarget <= minSeparationDistance)
+                {
+                    StopMovement();
+                    return;
+                }
+            }
+
             float deltaX = destination.x - transform.position.x;
 
             if (Mathf.Abs(deltaX) > 0.05f)
@@ -508,9 +519,26 @@ namespace HUMAN.Enemy
                 LastHitDirection = damage.HitDirection;
             }
 
-            float pushDir = damage.HitDirection.x != 0f 
-                ? Mathf.Sign(damage.HitDirection.x) 
-                : (damage.Instigator != null ? Mathf.Sign(transform.position.x - damage.Instigator.transform.position.x) : (transform.eulerAngles.y > 0 ? -1f : 1f));
+            // Düşman Knockback yönü: Kesinlikle saldıran oyuncudan düşmana doğru (uzağa)
+            float pushDir;
+            if (damage.Instigator != null)
+            {
+                float deltaX = transform.position.x - damage.Instigator.transform.position.x;
+                pushDir = Mathf.Abs(deltaX) > 0.01f ? Mathf.Sign(deltaX) : (transform.eulerAngles.y > 0 ? -1f : 1f);
+            }
+            else if (target != null)
+            {
+                float deltaX = transform.position.x - target.position.x;
+                pushDir = Mathf.Abs(deltaX) > 0.01f ? Mathf.Sign(deltaX) : (transform.eulerAngles.y > 0 ? -1f : 1f);
+            }
+            else if (damage.HitDirection.x != 0f)
+            {
+                pushDir = Mathf.Sign(damage.HitDirection.x);
+            }
+            else
+            {
+                pushDir = transform.eulerAngles.y > 0 ? -1f : 1f;
+            }
 
             bool isHeavyHit = damage.Amount >= 35f || damage.PoiseDamage >= 30f;
             float force = isHeavyHit ? heavyHitKnockback : normalHitKnockback;

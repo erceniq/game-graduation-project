@@ -91,7 +91,8 @@ namespace HUMAN.Combat
                 {
                     parryable = other.GetComponentInParent<IParryable>();
                 }
-                Vector3 hitDirection = (other.transform.position - transform.position).normalized;
+                Vector3 originPos = ownerRoot != null ? ownerRoot.transform.position : transform.position;
+                Vector3 hitDirection = (other.transform.position - originPos).normalized;
 
                 DamageData damage = new DamageData
                 {

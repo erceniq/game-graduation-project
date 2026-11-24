@@ -49,6 +49,11 @@ public class LeftRightJump : MonoBehaviour
     [SerializeField] private float jumpAttackSlamSpeed = -14.0f;
     [SerializeField] private float jumpAttackLandRecovery = 0.25f;
 
+    [Header("Spacing & Anti-Overlap (2.5D)")]
+    [Tooltip("Düşman ile oyuncu arasındaki minimum mesafe (ideal yumruk mesafesi)")]
+    [SerializeField] private float minSeparationDistance = 1.25f;
+    private Transform cachedEnemyTransform;
+
     [Header("2.5D Player Knockback")]
     [Tooltip("Geri tepme sönümlenme katsayısı")]
     [SerializeField] private float knockbackDecay = 14f;
@@ -79,10 +84,39 @@ public class LeftRightJump : MonoBehaviour
     private bool hasStruckThisState = false;
     private bool jumpAttackLanded = false;
     private float landTimer = 0f;
+    private bool isBlocking = false;
+    [SerializeField] private float parryMaxLockDuration = 0.65f;
+    private float parryLockTimer = 0f;
 
     // Public Properties
     public bool IsAttacking => combatState != CombatState.None;
-    public bool CanParry => combatState == CombatState.None;
+    public bool IsBlocking => isBlocking;
+
+    /// <summary>
+    /// Savuşturma penceresi veya parry animasyonu aktif mi?
+    /// Animator'daki "Parry" state'inin normalizedTime değeri >= 0.85f olduğunda veya süre dolduğunda kilit otomatik serbest kalır.
+    /// </summary>
+    public bool IsParryAnimationActive
+    {
+        get
+        {
+            if (animator != null && animator.isActiveAndEnabled)
+            {
+                var state = animator.GetCurrentAnimatorStateInfo(0);
+                if (state.IsName("Parry"))
+                {
+                    if (state.normalizedTime >= 0.85f)
+                    {
+                        return false;
+                    }
+                    return isBlocking;
+                }
+            }
+            return isBlocking;
+        }
+    }
+
+    public bool CanParry => combatState == CombatState.None && !IsParryAnimationActive;
     public CombatState CurrentCombatState => combatState;
     public float FacingDirection => facingDirection;
     public bool IsFacingRight => facingDirection > 0f;
@@ -169,17 +203,31 @@ public class LeftRightJump : MonoBehaviour
             combatBridge = GetComponent<PlayerCombatTestBridge>();
         }
 
-        bool isParrying = combatBridge != null && combatBridge.IsParryActive;
+        if (isBlocking)
+        {
+            parryLockTimer -= Time.deltaTime;
+            if (parryLockTimer <= 0f)
+            {
+                EndParry();
+            }
+        }
+
+        bool isParrying = (combatBridge != null && combatBridge.IsParryActive) || IsParryAnimationActive;
 
         float horizontal = inputMap.Player.LeftRight.ReadValue<float>();
         bool attackPressed = (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
                           || (Keyboard.current != null && Keyboard.current.jKey.wasPressedThisFrame);
         bool jumpPressed = inputMap.Player.Jump.WasPressedThisFrame();
 
-        // Savuşturma (Parry) esnasında saldırı veya zıplama başlatılmaz
+        // Savuşturma (Parry) penceresi VEYA animasyon toparlanma süreci esnasında saldırı veya zıplama KESİNLİKLE başlatılamaz
         if (!isParrying)
         {
             UpdateCombat(attackPressed, horizontal, jumpPressed);
+        }
+        else
+        {
+            // Parry veya blok animasyonu esnasında saldırı girişini tamamen yut
+            inputBuffered = false;
         }
 
         UpdateLocomotion(horizontal, jumpPressed, isParrying);
@@ -440,10 +488,49 @@ public class LeftRightJump : MonoBehaviour
     /// </summary>
     public void InterruptAttack()
     {
+        isBlocking = false;
+        parryLockTimer = 0f;
         ResetCombatState();
         if (EnsureAnimatorController() && characterController != null && characterController.isGrounded)
         {
+            animator.SetBool("IsBlocking", false);
+            animator.ResetTrigger("Parry");
             animator.CrossFadeInFixedTime("Idle", 0.08f);
+        }
+    }
+
+    /// <summary>
+    /// Sağ Tık ile parry/blok savunma duruşuna geçer ve parry animasyonunu tetikler.
+    /// </summary>
+    public void TriggerParry()
+    {
+        isBlocking = true;
+        parryLockTimer = parryMaxLockDuration;
+        if (EnsureAnimatorController())
+        {
+            animator.ResetTrigger("Jump");
+            animator.ResetTrigger("Parry");
+            animator.SetTrigger("Parry");
+            animator.SetBool("IsBlocking", true);
+            animator.CrossFadeInFixedTime("Parry", 0.05f);
+        }
+    }
+
+    /// <summary>
+    /// Savuşturma/blok duruşunu sonlandırır ve yumuşakça Idle/Run durumuna döner.
+    /// </summary>
+    public void EndParry()
+    {
+        isBlocking = false;
+        parryLockTimer = 0f;
+        if (EnsureAnimatorController())
+        {
+            animator.SetBool("IsBlocking", false);
+            animator.ResetTrigger("Parry");
+            if (combatState == CombatState.None)
+            {
+                animator.CrossFadeInFixedTime("Idle", 0.10f);
+            }
         }
     }
 
@@ -496,6 +583,30 @@ public class LeftRightJump : MonoBehaviour
         else
         {
             velocity.x = horizontal * speed;
+        }
+
+        // Spacing & Anti-Overlap (Mesafe Koruma ve İç İçe Geçmeyi Önleme)
+        if (cachedEnemyTransform == null)
+        {
+            var enemyBrain = FindFirstObjectByType<HUMAN.Enemy.EnemyBrain>();
+            if (enemyBrain != null) cachedEnemyTransform = enemyBrain.transform;
+        }
+
+        if (cachedEnemyTransform != null)
+        {
+            float deltaX = cachedEnemyTransform.position.x - transform.position.x;
+            float absDist = Mathf.Abs(deltaX);
+
+            // Eğer düşman ile mesafe minSeparationDistance (1.25f) altına inerse
+            if (absDist < minSeparationDistance)
+            {
+                float dirToEnemy = Mathf.Sign(deltaX);
+                // Düşmana doğru yaklaşan hareket hızını kes (clamp)
+                if ((dirToEnemy > 0f && velocity.x > 0f) || (dirToEnemy < 0f && velocity.x < 0f))
+                {
+                    velocity.x = 0f;
+                }
+            }
         }
 
         // Knockback ekle ve eksponansiyel sönümle
