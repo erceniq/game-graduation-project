@@ -21,6 +21,21 @@ namespace HUMAN.Enemy.StateMachine.States
             }
 
             staggerTimer = brain.StaggerDuration;
+
+            // Sersemleme ânında materyalleri mavi slow-motion tonuna geçir
+            if (HUMAN.Combat.CombatFeedbackController.HasInstance)
+            {
+                HUMAN.Combat.CombatFeedbackController.Instance.SetSlowMotionVisuals(brain.gameObject, true, new Color(0.25f, 0.65f, 1.0f, 1.0f));
+            }
+        }
+
+        public override void Exit()
+        {
+            // Sersemleme bittiğinde materyal renklerini eksiksiz geri yükle
+            if (HUMAN.Combat.CombatFeedbackController.HasInstance)
+            {
+                HUMAN.Combat.CombatFeedbackController.Instance.SetSlowMotionVisuals(brain.gameObject, false);
+            }
         }
 
         public override void Tick(float deltaTime)

@@ -114,7 +114,7 @@ namespace HUMAN.Combat
                 damageable.TakeDamage(damage);
 
                 // Temas anında darbe kıvılcımı ve görsel geri bildirim
-                if (CombatFeedbackController.Instance != null)
+                if (CombatFeedbackController.HasInstance)
                 {
                     CombatFeedbackController.Instance.SpawnImpactSparks(damage.HitPoint, hitDirection);
                 }

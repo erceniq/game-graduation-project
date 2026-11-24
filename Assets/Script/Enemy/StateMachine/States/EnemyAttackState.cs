@@ -153,19 +153,26 @@ namespace HUMAN.Enemy.StateMachine.States
                 return;
             }
 
-            float dist = brain.GetDistanceToTarget();
+            // Düşmanın duruşu (Poise) kırıldıysa kombo kesilir, sersemleme devreye girer
+            if (brain.PoiseSystem != null && brain.PoiseSystem.IsPoiseBroken)
+            {
+                stateMachine.ChangeState(brain.StaggerState);
+                return;
+            }
 
-            // Kombo adımı tamamlanmadıysa ve oyuncu hala saldırı menzili içindeyse bir sonraki vuruşa geç
-            if (currentComboStep < brain.MaxComboHits && dist <= brain.AttackRadius * 1.25f)
+            float hDist = brain.GetHorizontalDistanceToTarget();
+
+            // Kombo adımı tamamlanmadıysa (1. veya 2. vuruş) ve oyuncu hala menzildeyse 3. vuruşa (Finisher) kadar devam et
+            if (currentComboStep < brain.MaxComboHits && hDist <= brain.AttackRadius * 1.35f)
             {
                 StartComboStep(currentComboStep + 1);
             }
             else
             {
-                // Kombo bitti (3. vuruş tamamlandı veya oyuncu menzilden çıktı)
-                if (dist <= brain.AttackRadius)
+                // Kombo bitti (3 vuruş tamamlandı veya oyuncu menzilden çıktı)
+                if (hDist <= brain.AttackRadius)
                 {
-                    // Oyuncu hala yakınsa kısa nefes alma/idle sonrası tekrar komboya başlayabilir
+                    // Oyuncu hala yakınsa kısa toparlanma/idle sonrası tekrar komboya başlayabilir
                     stateMachine.ChangeState(brain.IdleState);
                 }
                 else

@@ -10,10 +10,19 @@ using TMPro;
 public class PlayerHUD : MonoBehaviour
 {
     private static PlayerHUD _instance;
+    private static bool isQuitting = false;
+
+    /// <summary>
+    /// Sahne kapanırken veya uygulama çıkışında güvenli kontrol sağlayan bayrak.
+    /// </summary>
+    public static bool HasInstance => _instance != null && !isQuitting;
+
     public static PlayerHUD Instance
     {
         get
         {
+            if (isQuitting) return null;
+
             if (_instance == null)
             {
                 _instance = FindFirstObjectByType<PlayerHUD>();
@@ -193,6 +202,7 @@ public class PlayerHUD : MonoBehaviour
 
     private void Awake()
     {
+        isQuitting = false;
         if (_instance == null)
         {
             _instance = this;
@@ -206,6 +216,11 @@ public class PlayerHUD : MonoBehaviour
         AutoAssignReferences();
         InitEnergyPool();
         DisableAllRaycasts();
+    }
+
+    private void OnApplicationQuit()
+    {
+        isQuitting = true;
     }
 
     private void OnDestroy()

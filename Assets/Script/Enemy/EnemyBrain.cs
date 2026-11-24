@@ -125,6 +125,7 @@ namespace HUMAN.Enemy
         public float AttackRecoveryDuration => combo1Recovery;
         public float StaggerDuration => staggerDuration;
         public int MaxComboHits => maxComboHits;
+        public PoiseSystem PoiseSystem => poiseSystem;
         public Transform[] PatrolWaypoints => patrolWaypoints;
         public Hitbox WeaponHitbox => weaponHitbox;
         public EnemyRagdollController RagdollController => ragdollController;
@@ -328,7 +329,7 @@ namespace HUMAN.Enemy
         /// </summary>
         public void ShowParryStanceVisual(float duration)
         {
-            if (CombatFeedbackController.Instance != null)
+            if (CombatFeedbackController.HasInstance)
             {
                 CombatFeedbackController.Instance.TriggerParryStanceGlow(gameObject, duration);
             }
@@ -562,7 +563,7 @@ namespace HUMAN.Enemy
                 ? damage.HitPoint 
                 : (transform.position + Vector3.up * 1.2f);
 
-            if (CombatFeedbackController.Instance != null)
+            if (CombatFeedbackController.HasInstance)
             {
                 CombatFeedbackController.Instance.TriggerParryFeedback(sparkPos);
             }
@@ -581,6 +582,7 @@ namespace HUMAN.Enemy
                     playerMovement.InterruptAttack();
                     float knockbackDir = Mathf.Sign(damage.Instigator.transform.position.x - transform.position.x);
                     playerMovement.ApplyKnockback(knockbackDir, 5.5f);
+                    playerMovement.TriggerParriedSlowMotion(0.25f, 0.40f);
                 }
             }
 
@@ -627,8 +629,26 @@ namespace HUMAN.Enemy
             if (!isAlive) return;
             isAlive = false;
 
-            if (weaponHitbox != null) weaponHitbox.DeactivateHitbox();
-            if (hurtbox != null) hurtbox.gameObject.SetActive(false);
+            var cc = GetComponent<CharacterController>();
+            if (cc != null) cc.enabled = false;
+
+            var rootCols = GetComponents<Collider>();
+            for (int i = 0; i < rootCols.Length; i++)
+            {
+                if (rootCols[i] != null) rootCols[i].enabled = false;
+            }
+
+            if (weaponHitbox != null)
+            {
+                weaponHitbox.DeactivateHitbox();
+                weaponHitbox.enabled = false;
+            }
+
+            if (hurtbox != null)
+            {
+                hurtbox.enabled = false;
+                hurtbox.gameObject.SetActive(false);
+            }
 
             StopMovement();
             OnDeath?.Invoke();

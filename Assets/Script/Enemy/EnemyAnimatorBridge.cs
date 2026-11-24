@@ -107,6 +107,11 @@ namespace HUMAN.Enemy
             {
                 animator.speed = 1.0f;
             }
+
+            if (HUMAN.Combat.CombatFeedbackController.HasInstance)
+            {
+                HUMAN.Combat.CombatFeedbackController.Instance.SetSlowMotionVisuals(gameObject, false);
+            }
         }
 
         private void Start()

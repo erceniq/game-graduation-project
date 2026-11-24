@@ -13,15 +13,32 @@ namespace HUMAN.Combat
     public class CombatFeedbackController : MonoBehaviour
     {
         private static CombatFeedbackController _instance;
+        private static bool isQuitting = false;
+
+        /// <summary>
+        /// Sahne kapanırken veya uygulama çıkışında yeni bir GameObject spawn etmeden kontrol etmek için güvenli bayrak.
+        /// </summary>
+        public static bool HasInstance => _instance != null && !isQuitting;
+
         public static CombatFeedbackController Instance
         {
             get
             {
+                if (isQuitting)
+                {
+                    return null;
+                }
+
                 if (_instance == null)
                 {
                     _instance = FindFirstObjectByType<CombatFeedbackController>();
                     if (_instance == null)
                     {
+                        if (isQuitting || !Application.isPlaying)
+                        {
+                            return null;
+                        }
+
                         GameObject go = new GameObject("CombatFeedbackController");
                         _instance = go.AddComponent<CombatFeedbackController>();
                         DontDestroyOnLoad(go);
@@ -52,6 +69,11 @@ namespace HUMAN.Combat
         [SerializeField] private float hitFlashDuration = 0.09f;
         [SerializeField] private Color hitFlashColor = new Color(2.5f, 2.5f, 2.5f, 1f); // HDR White
 
+        [Header("Slow Motion Visuals")]
+        [SerializeField] private Color slowMoTintColor = new Color(0.25f, 0.65f, 1.0f, 1.0f); // Vibrant Cyan/Blue
+
+        private readonly HashSet<GameObject> activeSlowMoTargets = new HashSet<GameObject>();
+
         private Coroutine hitstopCoroutine;
         private Coroutine shakeCoroutine;
         private Vector3 originalCameraPos;
@@ -73,10 +95,15 @@ namespace HUMAN.Combat
         {
             UnityEditor.EditorApplication.playModeStateChanged += state =>
             {
-                if (state == UnityEditor.PlayModeStateChange.ExitingPlayMode ||
-                    state == UnityEditor.PlayModeStateChange.EnteredPlayMode ||
-                    state == UnityEditor.PlayModeStateChange.EnteredEditMode)
+                if (state == UnityEditor.PlayModeStateChange.ExitingPlayMode)
                 {
+                    isQuitting = true;
+                    Time.timeScale = 1.0f;
+                }
+                else if (state == UnityEditor.PlayModeStateChange.EnteredPlayMode ||
+                         state == UnityEditor.PlayModeStateChange.EnteredEditMode)
+                {
+                    isQuitting = false;
                     Time.timeScale = 1.0f;
                 }
             };
@@ -85,6 +112,7 @@ namespace HUMAN.Combat
 
         private void Awake()
         {
+            isQuitting = false;
             Time.timeScale = 1.0f;
 
             if (_instance == null)
@@ -101,6 +129,11 @@ namespace HUMAN.Combat
             {
                 targetCamera = Camera.main;
             }
+        }
+
+        private void OnApplicationQuit()
+        {
+            isQuitting = true;
         }
 
         private void OnDisable()
@@ -120,6 +153,11 @@ namespace HUMAN.Combat
             {
                 StopCoroutine(hitstopCoroutine);
                 hitstopCoroutine = null;
+            }
+
+            if (_instance == this)
+            {
+                _instance = null;
             }
         }
 
@@ -223,10 +261,24 @@ namespace HUMAN.Combat
 
             if (target != null)
             {
-                MaterialPropertyBlock clearBlock = new MaterialPropertyBlock();
-                for (int i = 0; i < renderers.Length; i++)
+                if (activeSlowMoTargets.Contains(target))
                 {
-                    if (renderers[i] != null) renderers[i].SetPropertyBlock(clearBlock);
+                    MaterialPropertyBlock block = new MaterialPropertyBlock();
+                    block.SetColor(BaseColorId, slowMoTintColor);
+                    block.SetColor(ColorId, slowMoTintColor);
+                    block.SetColor(EmissionColorId, slowMoTintColor * 0.35f);
+                    for (int i = 0; i < renderers.Length; i++)
+                    {
+                        if (renderers[i] != null) renderers[i].SetPropertyBlock(block);
+                    }
+                }
+                else
+                {
+                    MaterialPropertyBlock clearBlock = new MaterialPropertyBlock();
+                    for (int i = 0; i < renderers.Length; i++)
+                    {
+                        if (renderers[i] != null) renderers[i].SetPropertyBlock(clearBlock);
+                    }
                 }
             }
         }
@@ -265,6 +317,58 @@ namespace HUMAN.Combat
 
             if (target != null)
             {
+                if (activeSlowMoTargets.Contains(target))
+                {
+                    MaterialPropertyBlock block = new MaterialPropertyBlock();
+                    block.SetColor(BaseColorId, slowMoTintColor);
+                    block.SetColor(ColorId, slowMoTintColor);
+                    block.SetColor(EmissionColorId, slowMoTintColor * 0.35f);
+                    for (int i = 0; i < renderers.Length; i++)
+                    {
+                        if (renderers[i] != null) renderers[i].SetPropertyBlock(block);
+                    }
+                }
+                else
+                {
+                    MaterialPropertyBlock clearBlock = new MaterialPropertyBlock();
+                    for (int i = 0; i < renderers.Length; i++)
+                    {
+                        if (renderers[i] != null) renderers[i].SetPropertyBlock(clearBlock);
+                    }
+                }
+            }
+        }
+        #endregion
+
+        #region SLOW MOTION TINT
+        /// <summary>
+        /// Slow-motion / sersemleme ânında karakterin Renderer materyallerini belirgin mavimsi bir tona çevirir veya normale döndürür.
+        /// URP _BaseColor, _Color ve _EmissionColor destekler.
+        /// </summary>
+        public void SetSlowMotionVisuals(GameObject target, bool active, Color? customColor = null)
+        {
+            if (target == null) return;
+
+            Renderer[] renderers = target.GetComponentsInChildren<Renderer>(true);
+            if (renderers == null || renderers.Length == 0) return;
+
+            if (active)
+            {
+                activeSlowMoTargets.Add(target);
+                Color tint = customColor ?? slowMoTintColor;
+                MaterialPropertyBlock block = new MaterialPropertyBlock();
+                block.SetColor(BaseColorId, tint);
+                block.SetColor(ColorId, tint);
+                block.SetColor(EmissionColorId, tint * 0.35f);
+
+                for (int i = 0; i < renderers.Length; i++)
+                {
+                    if (renderers[i] != null) renderers[i].SetPropertyBlock(block);
+                }
+            }
+            else
+            {
+                activeSlowMoTargets.Remove(target);
                 MaterialPropertyBlock clearBlock = new MaterialPropertyBlock();
                 for (int i = 0; i < renderers.Length; i++)
                 {
@@ -277,6 +381,8 @@ namespace HUMAN.Combat
         #region PROCEDURAL PARTICLES (PARRY & IMPACT SPARKS)
         public void SpawnParrySparks(Vector3 position)
         {
+            if (isQuitting || !Application.isPlaying) return;
+
             GameObject sparkObj = new GameObject("ParrySparkVFX");
             sparkObj.transform.position = position;
 
@@ -338,6 +444,8 @@ namespace HUMAN.Combat
 
         public void SpawnImpactSparks(Vector3 position, Vector3 direction)
         {
+            if (isQuitting || !Application.isPlaying) return;
+
             GameObject sparkObj = new GameObject("HitSparkVFX");
             sparkObj.transform.position = position;
 

@@ -250,7 +250,7 @@ namespace HUMAN.Enemy.Testing
                     hitAny = true;
 
                     // Görsel & Hissiyat Geri Bildirimi: Yalnızca düşman parry yapmadığı durumlarda normal Hit Flash tetikle
-                    if (!enemyParrying && CombatFeedbackController.Instance != null)
+                    if (!enemyParrying && CombatFeedbackController.HasInstance)
                     {
                         CombatFeedbackController.Instance.TriggerEnemyHitFeedback(rootObj, contactPoint, dmg.HitDirection);
                     }
@@ -334,7 +334,10 @@ namespace HUMAN.Enemy.Testing
                 Vector3 sparkPos = incomingDamage.HitPoint != Vector3.zero 
                     ? incomingDamage.HitPoint 
                     : (transform.position + transform.forward * 1.0f + Vector3.up * 1.2f);
-                CombatFeedbackController.Instance.TriggerParryFeedback(sparkPos);
+                if (CombatFeedbackController.HasInstance)
+                {
+                    CombatFeedbackController.Instance.TriggerParryFeedback(sparkPos);
+                }
 
                 // 2. Oyuncuya hafif karşılıklı tepme (Parry Recoil Knockback)
                 if (leftRightJump != null)
@@ -346,7 +349,7 @@ namespace HUMAN.Enemy.Testing
                 }
 
                 // 3. PlayerHUD Entegrasyonu: Fist Energy'ye +2 Enerji ekle ve parlama efekti oynat
-                if (PlayerHUD.Instance != null)
+                if (PlayerHUD.HasInstance)
                 {
                     PlayerHUD.Instance.AddEnergy(2);
                     PlayerHUD.Instance.TriggerParryEnergyPulse();
@@ -385,6 +388,14 @@ namespace HUMAN.Enemy.Testing
             return false;
         }
 
+        public void TriggerParriedSlowMotion(float slowScale = 0.25f, float duration = 0.40f)
+        {
+            if (leftRightJump != null)
+            {
+                leftRightJump.TriggerParriedSlowMotion(slowScale, duration);
+            }
+        }
+
         public void TakeDamage(DamageData damage)
         {
             if (!IsAlive) return;
@@ -400,7 +411,7 @@ namespace HUMAN.Enemy.Testing
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
 
             // PlayerHUD Can Barı Güncellemesi
-            if (PlayerHUD.Instance != null)
+            if (PlayerHUD.HasInstance)
             {
                 PlayerHUD.Instance.SetHealth(currentHealth);
             }
@@ -427,9 +438,12 @@ namespace HUMAN.Enemy.Testing
             }
 
             // Hasar Geri Bildirimi: Ekran sarsıntısı ve oyuncu hit flash
-            CombatFeedbackController.Instance.TriggerHitstop(0.06f, 0.15f);
-            CombatFeedbackController.Instance.TriggerCameraShake(0.12f, 0.14f);
-            CombatFeedbackController.Instance.TriggerHitFlash(gameObject);
+            if (CombatFeedbackController.HasInstance)
+            {
+                CombatFeedbackController.Instance.TriggerHitstop(0.06f, 0.15f);
+                CombatFeedbackController.Instance.TriggerCameraShake(0.12f, 0.14f);
+                CombatFeedbackController.Instance.TriggerHitFlash(gameObject);
+            }
 
             Debug.Log($"<color=red>[PlayerCombatTest] Hasar alındı! Miktar: {damage.Amount}, Kalan Can: {currentHealth}/{maxHealth}</color>");
 

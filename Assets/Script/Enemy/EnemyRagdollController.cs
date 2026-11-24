@@ -214,6 +214,7 @@ namespace HUMAN.Enemy
             {
                 if (boneColliders[i] != null)
                 {
+                    boneColliders[i].isTrigger = false;
                     boneColliders[i].enabled = false;
                 }
             }
@@ -233,6 +234,13 @@ namespace HUMAN.Enemy
             // 1. Ana animatör ve hareket bileşenlerini kapat
             if (animator != null) animator.enabled = false;
             if (mainCollider != null) mainCollider.enabled = false;
+            var cc = GetComponent<CharacterController>();
+            if (cc != null) cc.enabled = false;
+            var rootCols = GetComponents<Collider>();
+            for (int i = 0; i < rootCols.Length; i++)
+            {
+                if (rootCols[i] != null) rootCols[i].enabled = false;
+            }
             if (mainRigidbody != null)
             {
                 mainRigidbody.linearVelocity = Vector3.zero;
@@ -244,7 +252,11 @@ namespace HUMAN.Enemy
             {
                 for (int i = 0; i < hitboxes.Length; i++)
                 {
-                    if (hitboxes[i] != null) hitboxes[i].DeactivateHitbox();
+                    if (hitboxes[i] != null)
+                    {
+                        hitboxes[i].DeactivateHitbox();
+                        hitboxes[i].enabled = false;
+                    }
                 }
             }
 
@@ -252,16 +264,37 @@ namespace HUMAN.Enemy
             {
                 for (int i = 0; i < hurtboxes.Length; i++)
                 {
-                    if (hurtboxes[i] != null) hurtboxes[i].gameObject.SetActive(false);
+                    if (hurtboxes[i] != null)
+                    {
+                        hurtboxes[i].enabled = false;
+                        hurtboxes[i].gameObject.SetActive(false);
+                    }
                 }
             }
 
-            // 3. Kemik fiziğini ve çarpışmalarını aç
+            // 3. Kemik fiziğini aç ve Oyuncunun CharacterController hareketini engellememesi için çarpışmayı izole et
+            GameObject playerObj = GameObject.FindWithTag("Player");
+            Collider[] playerColliders = playerObj != null ? playerObj.GetComponentsInChildren<Collider>(true) : null;
+
             for (int i = 0; i < boneColliders.Count; i++)
             {
-                if (boneColliders[i] != null)
+                var bCol = boneColliders[i];
+                if (bCol != null)
                 {
-                    boneColliders[i].enabled = true;
+                    bCol.enabled = true;
+                    bCol.isTrigger = false;
+
+                    if (playerColliders != null)
+                    {
+                        for (int p = 0; p < playerColliders.Length; p++)
+                        {
+                            var pCol = playerColliders[p];
+                            if (pCol != null && pCol != bCol)
+                            {
+                                Physics.IgnoreCollision(bCol, pCol, true);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -348,6 +381,16 @@ namespace HUMAN.Enemy
                     }
                     rb.Sleep();
                     rb.isKinematic = true;
+                }
+            }
+
+            // Kemikler yere yerleşip dondurulduğunda, oyuncunun takılmadan rahatça geçebilmesi için trigger yap
+            for (int i = 0; i < boneColliders.Count; i++)
+            {
+                var bCol = boneColliders[i];
+                if (bCol != null)
+                {
+                    bCol.isTrigger = true;
                 }
             }
         }

@@ -53,6 +53,7 @@ public class LeftRightJump : MonoBehaviour
     [Tooltip("Düşman ile oyuncu arasındaki minimum mesafe (ideal yumruk mesafesi)")]
     [SerializeField] private float minSeparationDistance = 1.25f;
     private Transform cachedEnemyTransform;
+    private HUMAN.Enemy.EnemyBrain cachedEnemyBrain;
 
     [Header("2.5D Player Knockback")]
     [Tooltip("Geri tepme sönümlenme katsayısı")]
@@ -157,6 +158,19 @@ public class LeftRightJump : MonoBehaviour
 
     void OnDisable()
     {
+        if (parriedSlowMotionCoroutine != null)
+        {
+            StopCoroutine(parriedSlowMotionCoroutine);
+            parriedSlowMotionCoroutine = null;
+        }
+        if (HUMAN.Combat.CombatFeedbackController.HasInstance)
+        {
+            HUMAN.Combat.CombatFeedbackController.Instance.SetSlowMotionVisuals(gameObject, false);
+        }
+        if (animator != null)
+        {
+            animator.speed = 1.0f;
+        }
         if (inputMap != null)
         {
             inputMap.Player.Disable();
@@ -534,6 +548,46 @@ public class LeftRightJump : MonoBehaviour
         }
     }
 
+    private Coroutine parriedSlowMotionCoroutine;
+
+    /// <summary>
+    /// Düşman başarılı parry yaptığında oyuncunun Animator hızını geçici olarak yavaşlatır (ağır çekimde sendeleme hissi).
+    /// </summary>
+    public void TriggerParriedSlowMotion(float slowScale = 0.25f, float duration = 0.40f)
+    {
+        if (parriedSlowMotionCoroutine != null)
+        {
+            StopCoroutine(parriedSlowMotionCoroutine);
+        }
+        parriedSlowMotionCoroutine = StartCoroutine(ParriedSlowMotionRoutine(slowScale, duration));
+    }
+
+    private System.Collections.IEnumerator ParriedSlowMotionRoutine(float slowScale, float duration)
+    {
+        if (EnsureAnimatorController())
+        {
+            animator.speed = Mathf.Clamp(slowScale, 0.05f, 1.0f);
+        }
+
+        if (HUMAN.Combat.CombatFeedbackController.Instance != null)
+        {
+            HUMAN.Combat.CombatFeedbackController.Instance.SetSlowMotionVisuals(gameObject, true, new Color(0.25f, 0.65f, 1.0f, 1.0f));
+        }
+
+        yield return new WaitForSeconds(duration);
+
+        if (HUMAN.Combat.CombatFeedbackController.HasInstance)
+        {
+            HUMAN.Combat.CombatFeedbackController.Instance.SetSlowMotionVisuals(gameObject, false);
+        }
+
+        if (animator != null)
+        {
+            animator.speed = 1.0f;
+        }
+        parriedSlowMotionCoroutine = null;
+    }
+
     private void UpdateLocomotion(float horizontal, bool jumpPressed, bool isParrying)
     {
         bool isGrounded = characterController.isGrounded;
@@ -586,18 +640,28 @@ public class LeftRightJump : MonoBehaviour
         }
 
         // Spacing & Anti-Overlap (Mesafe Koruma ve İç İçe Geçmeyi Önleme)
-        if (cachedEnemyTransform == null)
+        if (cachedEnemyTransform == null || (cachedEnemyBrain != null && !cachedEnemyBrain.IsAlive))
         {
-            var enemyBrain = FindFirstObjectByType<HUMAN.Enemy.EnemyBrain>();
-            if (enemyBrain != null) cachedEnemyTransform = enemyBrain.transform;
+            var enemies = FindObjectsByType<HUMAN.Enemy.EnemyBrain>(FindObjectsSortMode.None);
+            cachedEnemyBrain = null;
+            cachedEnemyTransform = null;
+            foreach (var eb in enemies)
+            {
+                if (eb != null && eb.IsAlive)
+                {
+                    cachedEnemyBrain = eb;
+                    cachedEnemyTransform = eb.transform;
+                    break;
+                }
+            }
         }
 
-        if (cachedEnemyTransform != null)
+        if (cachedEnemyTransform != null && cachedEnemyBrain != null && cachedEnemyBrain.IsAlive)
         {
             float deltaX = cachedEnemyTransform.position.x - transform.position.x;
             float absDist = Mathf.Abs(deltaX);
 
-            // Eğer düşman ile mesafe minSeparationDistance (1.25f) altına inerse
+            // Eğer yaşayan düşman ile mesafe minSeparationDistance (1.25f) altına inerse
             if (absDist < minSeparationDistance)
             {
                 float dirToEnemy = Mathf.Sign(deltaX);

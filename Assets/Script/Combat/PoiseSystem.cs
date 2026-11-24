@@ -25,6 +25,7 @@ namespace HUMAN.Combat
 
         public float CurrentPoise => currentPoise;
         public float MaxPoise => maxPoise;
+        public bool IsPoiseBroken => currentPoise <= 0.001f;
 
         /// <summary>
         /// Poise tamamen tükendiğinde (duruş kırıldığında) tetiklenen olay.
@@ -76,7 +77,10 @@ namespace HUMAN.Combat
             if (currentPoise <= 0.001f)
             {
                 currentPoise = maxPoise; // Duruş kırıldıktan sonra poise sıfırlanır ve dolmaya başlar
-                CombatFeedbackController.Instance.TriggerPoiseBreakFeedback(transform.position + Vector3.up * 1.5f);
+                if (CombatFeedbackController.HasInstance)
+                {
+                    CombatFeedbackController.Instance.TriggerPoiseBreakFeedback(transform.position + Vector3.up * 1.5f);
+                }
                 OnPoiseBroken?.Invoke();
             }
         }
