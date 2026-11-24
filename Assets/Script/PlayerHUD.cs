@@ -727,6 +727,71 @@ public class PlayerHUD : MonoBehaviour
     public void ConsumeEnergy(int amount = 1) => SetEnergy(currentEnergyUnits - amount);
     public void ResetEnergy() => SetEnergy(0);
 
+    private Coroutine parryPulseCoroutine;
+
+    /// <summary>
+    /// Başarılı Parry yapıldığında Fist Energy barında parlak elektrik mavisi/altın titreşim ve büyüme efekti oynatır.
+    /// </summary>
+    public void TriggerParryEnergyPulse()
+    {
+        if (parryPulseCoroutine != null) StopCoroutine(parryPulseCoroutine);
+        parryPulseCoroutine = StartCoroutine(ParryEnergyPulseRoutine());
+    }
+
+    private System.Collections.IEnumerator ParryEnergyPulseRoutine()
+    {
+        if (fistEnergyRect == null) yield break;
+
+        Vector3 normalScale = fistEnergyRect.localScale;
+        Vector3 pulseScale = normalScale * 1.35f;
+        Color parryGlowColor = new Color(0.2f, 0.9f, 1f, 1f); // Elektrik mavisi parıltı
+
+        for (int i = 0; i < currentEnergyUnits && i < energyPipPool.Count; i++)
+        {
+            if (energyPipPool[i] != null)
+            {
+                energyPipPool[i].localScale = pulseScale;
+                Image img = energyPipPool[i].GetComponent<Image>();
+                if (img != null) img.color = parryGlowColor;
+            }
+        }
+
+        float elapsed = 0f;
+        float duration = 0.28f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = elapsed / duration;
+            Vector3 currentS = Vector3.Lerp(pulseScale, normalScale, t);
+            Color currentC = Color.Lerp(parryGlowColor, Color.white, t);
+
+            for (int i = 0; i < currentEnergyUnits && i < energyPipPool.Count; i++)
+            {
+                if (energyPipPool[i] != null)
+                {
+                    energyPipPool[i].localScale = currentS;
+                    Image img = energyPipPool[i].GetComponent<Image>();
+                    if (img != null) img.color = currentC;
+                }
+            }
+
+            yield return null;
+        }
+
+        for (int i = 0; i < currentEnergyUnits && i < energyPipPool.Count; i++)
+        {
+            if (energyPipPool[i] != null)
+            {
+                energyPipPool[i].localScale = normalScale;
+                Image img = energyPipPool[i].GetComponent<Image>();
+                if (img != null) img.color = Color.white;
+            }
+        }
+
+        parryPulseCoroutine = null;
+    }
+
     public void SetMaxLimitX(float limitX, bool enableLimit = true)
     {
         useMaxLimitX = enableLimit;

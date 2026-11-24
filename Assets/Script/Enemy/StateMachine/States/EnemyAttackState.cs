@@ -1,0 +1,147 @@
+using UnityEngine;
+
+namespace HUMAN.Enemy.StateMachine.States
+{
+    /// <summary>
+    /// Soulslike çoklu saldırı kombo durumu (Attack1 -> Attack2 -> Attack3):
+    /// Her vuruş kendi 3 aşamasına sahiptir:
+    /// 1. Telegraph (Hazırlık/İpucu): Oyuncuya parry veya dodge zamanlamasını okuma fırsatı verir.
+    /// 2. Active (Vuruş): Hitbox açılır, saldırı savuşturulabilir (parryable).
+    /// 3. Recovery (Toparlanma): Hitbox kapanır. Oyuncu menzildeyse ve poise kırılmadıysa kombo devam eder.
+    /// Eğer oyuncu herhangi bir vuruşu parry ederse, kombo anında kesilir ve düşman Stagger durumuna geçer.
+    /// </summary>
+    public class EnemyAttackState : EnemyBaseState
+    {
+        private enum AttackPhase
+        {
+            Telegraph,
+            Active,
+            Recovery
+        }
+
+        private AttackPhase currentPhase;
+        private float phaseTimer;
+        private int currentComboStep = 1;
+
+        public int CurrentComboStep => currentComboStep;
+
+        public EnemyAttackState(EnemyBrain brain, EnemyStateMachine stateMachine) : base(brain, stateMachine) { }
+
+        public override void Enter()
+        {
+            brain.StopMovement();
+            currentComboStep = 1;
+            StartComboStep(currentComboStep);
+        }
+
+        private void StartComboStep(int step)
+        {
+            currentComboStep = step;
+            currentPhase = AttackPhase.Telegraph;
+
+            brain.GetComboTimers(step, out float telegraph, out _, out _, out float dmg, out float poiseDmg);
+            phaseTimer = telegraph;
+
+            // Silah hasarını kombo adımına göre güncelle
+            if (brain.WeaponHitbox != null)
+            {
+                brain.WeaponHitbox.SetDamage(dmg, poiseDmg);
+            }
+
+            // Düşmanın her kombo vuruşunun başında hedefe dönmesi
+            brain.LookAtTarget();
+
+            // Animasyon köprüsüne kombo adımını bildir (Attack1, Attack2 veya Attack3)
+            brain.NotifyAttackComboStep(step);
+        }
+
+        public override void Tick(float deltaTime)
+        {
+            phaseTimer -= deltaTime;
+
+            switch (currentPhase)
+            {
+                case AttackPhase.Telegraph:
+                    brain.LookAtTarget();
+                    if (phaseTimer <= 0f)
+                    {
+                        // Active aşamasına geç, Hitbox'ı etkinleştir
+                        currentPhase = AttackPhase.Active;
+                        brain.GetComboTimers(currentComboStep, out _, out float active, out _, out _, out _);
+                        phaseTimer = active;
+
+                        brain.NotifyAttackActive(true);
+                        if (brain.WeaponHitbox != null)
+                        {
+                            brain.WeaponHitbox.ActivateHitbox();
+                        }
+                    }
+                    break;
+
+                case AttackPhase.Active:
+                    if (phaseTimer <= 0f)
+                    {
+                        // Recovery aşamasına geç, Hitbox'ı kapat
+                        currentPhase = AttackPhase.Recovery;
+                        brain.GetComboTimers(currentComboStep, out _, out _, out float recovery, out _, out _);
+                        phaseTimer = recovery;
+
+                        brain.NotifyAttackActive(false);
+                        if (brain.WeaponHitbox != null)
+                        {
+                            brain.WeaponHitbox.DeactivateHitbox();
+                        }
+                    }
+                    break;
+
+                case AttackPhase.Recovery:
+                    if (phaseTimer <= 0f)
+                    {
+                        CheckComboProgression();
+                    }
+                    break;
+            }
+        }
+
+        private void CheckComboProgression()
+        {
+            // Hedef kaybolduysa veya düşman öldüyse saldırıyı sonlandır
+            if (brain.Target == null || !brain.IsAlive)
+            {
+                stateMachine.ChangeState(brain.IdleState);
+                return;
+            }
+
+            float dist = brain.GetDistanceToTarget();
+
+            // Kombo adımı tamamlanmadıysa ve oyuncu hala saldırı menzili içindeyse bir sonraki vuruşa geç
+            if (currentComboStep < brain.MaxComboHits && dist <= brain.AttackRadius * 1.25f)
+            {
+                StartComboStep(currentComboStep + 1);
+            }
+            else
+            {
+                // Kombo bitti (3. vuruş tamamlandı veya oyuncu menzilden çıktı)
+                if (dist <= brain.AttackRadius)
+                {
+                    // Oyuncu hala yakınsa kısa nefes alma/idle sonrası tekrar komboya başlayabilir
+                    stateMachine.ChangeState(brain.IdleState);
+                }
+                else
+                {
+                    stateMachine.ChangeState(brain.ChaseState);
+                }
+            }
+        }
+
+        public override void Exit()
+        {
+            currentComboStep = 1;
+            brain.NotifyAttackActive(false);
+            if (brain.WeaponHitbox != null)
+            {
+                brain.WeaponHitbox.DeactivateHitbox();
+            }
+        }
+    }
+}

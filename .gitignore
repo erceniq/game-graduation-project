@@ -112,4 +112,18 @@ InitTestScene*.unity*
 
 # Unity MCP local tools
 /Packages/MCPForUnity/
-/Packages/MCPForUnity.meta
+/Packages/MCPForUnity.meta
+
+# ==========================================
+# BMAD Method & AI Agent Frameworks
+# ==========================================
+.agent/
+AGENTS.md
+.bmad/
+_bmad/
+bmad/
+.claude/
+.cursor/
+*.py
+__pycache__/
+
