@@ -890,7 +890,8 @@ MonoBehaviour:
   padWithZero: 1
   initialCurrentAmmo: 0
   initialTotalAmmo: 0
-  clearStaminaOnStart: 1
+  initialStamina: 0
+  padStaminaWithZero: 0
   useCurrentPositionAsStart: 1
   energyStartX: 133.79999
   useDynamicSpacing: 1
@@ -918,7 +919,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0aa7d8b0acb7ee446b70e9f48b53fb69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HUDTester
-  test: 1
+  test: 0
   healthDecreaseAmount: 20
   healthIncreaseAmount: 20
   maxMagazineAmmo: 15
@@ -1393,7 +1394,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 50
+  m_text: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d4a2ee9886d916f45928fd63b57c476a, type: 2}
   m_sharedMaterial: {fileID: -4669902389995586464, guid: d4a2ee9886d916f45928fd63b57c476a, type: 2}

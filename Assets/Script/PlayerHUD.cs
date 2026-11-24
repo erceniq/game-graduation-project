@@ -97,8 +97,10 @@ public class PlayerHUD : MonoBehaviour
     [SerializeField] private int initialTotalAmmo = 0;
 
     [Header("Stamina Settings")]
-    [Tooltip("Başlangıçta stamina yazısı boş kalsın mı?")]
-    [SerializeField] private bool clearStaminaOnStart = true;
+    [Tooltip("Oyun başladığında gösterilecek varsayılan stamina sayısı")]
+    [SerializeField] private int initialStamina = 0;
+    [Tooltip("Stamina tek haneliyken önüne '0' eklensin mi? (Örn: 00)")]
+    [SerializeField] private bool padStaminaWithZero = false;
 
     [Header("Fist Energy (Dynamic Spacing & Alignment)")]
     [Tooltip("İlk parçanın başlangıç X ve Y pozisyonu sahnedeki FirstEnergy nesnesinden otomatik alınsın")]
@@ -250,10 +252,7 @@ public class PlayerHUD : MonoBehaviour
         UpdateMagazine(initialCurrentAmmo, initialTotalAmmo);
 
         // 4. Stamina
-        if (clearStaminaOnStart && staminaText != null)
-        {
-            staminaText.text = "";
-        }
+        UpdateStamina(initialStamina);
 
         // 5. Başlangıç Enerjisi & Boş Yuvalar
         SetEnergy(initialEnergy);
@@ -505,7 +504,7 @@ public class PlayerHUD : MonoBehaviour
         if (stamina == lastStaminaValue) return;
 
         lastStaminaValue = stamina;
-        staminaText.text = padWithZero ? stamina.ToString("D2") : stamina.ToString();
+        staminaText.text = padStaminaWithZero ? stamina.ToString("D2") : stamina.ToString();
     }
 
     public void SetStaminaText(string text)
