@@ -61,8 +61,32 @@ namespace HUMAN.Combat
         private static readonly int ColorId = Shader.PropertyToID("_Color");
         private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void ResetTimeScaleBeforeSceneLoad()
+        {
+            Time.timeScale = 1.0f;
+        }
+
+#if UNITY_EDITOR
+        [UnityEditor.InitializeOnLoadMethod]
+        private static void RegisterPlayModeReset()
+        {
+            UnityEditor.EditorApplication.playModeStateChanged += state =>
+            {
+                if (state == UnityEditor.PlayModeStateChange.ExitingPlayMode ||
+                    state == UnityEditor.PlayModeStateChange.EnteredPlayMode ||
+                    state == UnityEditor.PlayModeStateChange.EnteredEditMode)
+                {
+                    Time.timeScale = 1.0f;
+                }
+            };
+        }
+#endif
+
         private void Awake()
         {
+            Time.timeScale = 1.0f;
+
             if (_instance == null)
             {
                 _instance = this;
@@ -79,6 +103,26 @@ namespace HUMAN.Combat
             }
         }
 
+        private void OnDisable()
+        {
+            Time.timeScale = 1.0f;
+            if (hitstopCoroutine != null)
+            {
+                StopCoroutine(hitstopCoroutine);
+                hitstopCoroutine = null;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            Time.timeScale = 1.0f;
+            if (hitstopCoroutine != null)
+            {
+                StopCoroutine(hitstopCoroutine);
+                hitstopCoroutine = null;
+            }
+        }
+
         #region HITSTOP
         public void TriggerHitstop(float duration, float scale)
         {
@@ -91,10 +135,16 @@ namespace HUMAN.Combat
 
         private IEnumerator HitstopRoutine(float duration, float scale)
         {
-            Time.timeScale = Mathf.Clamp(scale, 0f, 1f);
-            yield return new WaitForSecondsRealtime(duration);
-            Time.timeScale = 1.0f;
-            hitstopCoroutine = null;
+            try
+            {
+                Time.timeScale = Mathf.Clamp(scale, 0.01f, 1f);
+                yield return new WaitForSecondsRealtime(duration);
+            }
+            finally
+            {
+                Time.timeScale = 1.0f;
+                hitstopCoroutine = null;
+            }
         }
         #endregion
 

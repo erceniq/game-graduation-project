@@ -34,6 +34,22 @@ namespace HUMAN.Enemy
         [Tooltip("Devriye noktaları (Opsiyonel)")]
         [SerializeField] private Transform[] patrolWaypoints;
 
+        [Header("Spacing & Anti-Overlap (2.5D)")]
+        [Tooltip("Düşmanın kovalarken oyuncudan ne kadar uzakta durup saldıracağı (X ekseni mesafesi)")]
+        [SerializeField] private float stoppingDistance = 1.45f;
+        [Tooltip("Karakterlerin silüetlerinin iç içe geçmemesi için izin verilen minimum mesafe")]
+        [SerializeField] private float minSeparationDistance = 1.15f;
+        [Tooltip("İç içe geçildiğinde karakteri dışa itme kuvveti")]
+        [SerializeField] private float antiOverlapPushForce = 4.0f;
+
+        [Header("2.5D Knockback Settings")]
+        [Tooltip("Normal vuruşlarda geri tepme kuvveti")]
+        [SerializeField] private float normalHitKnockback = 3.5f;
+        [Tooltip("Finisher darbesi, sersemleme veya parry anında geri tepme kuvveti")]
+        [SerializeField] private float heavyHitKnockback = 7.5f;
+        [Tooltip("Geri tepme sönümlenme hızı")]
+        [SerializeField] private float knockbackDecay = 12.0f;
+
         [Header("Combat Timers (Soulslike Game-Feel)")]
         [Tooltip("Duruş kırıldığında (Poise Broken) veya parry edildiğinde sersem kalma süresi")]
         [SerializeField] private float staggerDuration = 2.5f;
@@ -70,6 +86,7 @@ namespace HUMAN.Enemy
         private bool isAlive = true;
         private Rigidbody rb;
         private float zPositionLock;
+        private float knockbackVelocityX = 0f;
         public Vector3 LastHitDirection { get; private set; } = Vector3.left;
 
         // FSM
@@ -99,6 +116,10 @@ namespace HUMAN.Enemy
         public Transform[] PatrolWaypoints => patrolWaypoints;
         public Hitbox WeaponHitbox => weaponHitbox;
         public EnemyRagdollController RagdollController => ragdollController;
+        public float StoppingDistance => stoppingDistance;
+        public float MinSeparationDistance => minSeparationDistance;
+        public float NormalHitKnockback => normalHitKnockback;
+        public float HeavyHitKnockback => heavyHitKnockback;
 
         public event Action<float, float> OnHealthChanged;
         public event Action OnDeath;
@@ -230,6 +251,8 @@ namespace HUMAN.Enemy
         private void Update()
         {
             if (!isAlive) return;
+            UpdateKnockback(Time.deltaTime);
+            ResolveAntiOverlap(Time.deltaTime);
             StateMachine.Tick(Time.deltaTime);
             LockZPosition();
         }
@@ -279,6 +302,9 @@ namespace HUMAN.Enemy
         /// </summary>
         public void MoveTowards(Vector3 destination, float speed)
         {
+            // Eğer aktif bir knockback varsa hareket girdisi knockback'i ezmesin
+            if (Mathf.Abs(knockbackVelocityX) > 0.15f) return;
+
             float deltaX = destination.x - transform.position.x;
 
             if (Mathf.Abs(deltaX) > 0.05f)
@@ -312,7 +338,8 @@ namespace HUMAN.Enemy
         {
             if (rb != null && !rb.isKinematic)
             {
-                rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+                float xVel = Mathf.Abs(knockbackVelocityX) > 0.05f ? rb.linearVelocity.x : 0f;
+                rb.linearVelocity = new Vector3(xVel, rb.linearVelocity.y, 0f);
             }
         }
 
@@ -332,6 +359,62 @@ namespace HUMAN.Enemy
         #endregion
 
         #region COMBAT & DAMAGE
+        public void ApplyKnockback(float directionX, float force)
+        {
+            if (!isAlive || (ragdollController != null && ragdollController.IsRagdollActive)) return;
+
+            float dir = Mathf.Abs(directionX) > 0.01f ? Mathf.Sign(directionX) : (transform.eulerAngles.y > 0 ? -1f : 1f);
+            knockbackVelocityX = dir * force;
+        }
+
+        private void UpdateKnockback(float deltaTime)
+        {
+            if (Mathf.Abs(knockbackVelocityX) > 0.02f)
+            {
+                if (rb != null && !rb.isKinematic && Application.isPlaying)
+                {
+                    Vector3 vel = rb.linearVelocity;
+                    vel.x = knockbackVelocityX;
+                    rb.linearVelocity = vel;
+                }
+                else
+                {
+                    float newX = transform.position.x + knockbackVelocityX * deltaTime;
+                    transform.position = new Vector3(newX, transform.position.y, zPositionLock);
+                }
+
+                knockbackVelocityX = Mathf.Lerp(knockbackVelocityX, 0f, knockbackDecay * deltaTime);
+                if (Mathf.Abs(knockbackVelocityX) < 0.04f) knockbackVelocityX = 0f;
+            }
+        }
+
+        private void ResolveAntiOverlap(float deltaTime)
+        {
+            if (target == null || !isAlive || (ragdollController != null && ragdollController.IsRagdollActive)) return;
+
+            float deltaX = transform.position.x - target.position.x;
+            float absDeltaX = Mathf.Abs(deltaX);
+
+            if (absDeltaX < minSeparationDistance)
+            {
+                float pushDir = absDeltaX > 0.02f ? Mathf.Sign(deltaX) : (transform.eulerAngles.y > 0 ? 1f : -1f);
+                float overlap = minSeparationDistance - absDeltaX;
+                float pushSpeed = antiOverlapPushForce * (1f + overlap);
+
+                if (rb != null && !rb.isKinematic && Application.isPlaying)
+                {
+                    Vector3 vel = rb.linearVelocity;
+                    vel.x = pushDir * pushSpeed;
+                    rb.linearVelocity = vel;
+                }
+                else
+                {
+                    float newX = transform.position.x + pushDir * pushSpeed * deltaTime;
+                    transform.position = new Vector3(newX, transform.position.y, zPositionLock);
+                }
+            }
+        }
+
         public void TakeDamage(DamageData damage)
         {
             if (!isAlive) return;
@@ -340,6 +423,14 @@ namespace HUMAN.Enemy
             {
                 LastHitDirection = damage.HitDirection;
             }
+
+            float pushDir = damage.HitDirection.x != 0f 
+                ? Mathf.Sign(damage.HitDirection.x) 
+                : (damage.Instigator != null ? Mathf.Sign(transform.position.x - damage.Instigator.transform.position.x) : (transform.eulerAngles.y > 0 ? -1f : 1f));
+
+            bool isHeavyHit = damage.Amount >= 35f || damage.PoiseDamage >= 30f;
+            float force = isHeavyHit ? heavyHitKnockback : normalHitKnockback;
+            ApplyKnockback(pushDir, force);
 
             currentHealth = Mathf.Max(0f, currentHealth - damage.Amount);
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
@@ -361,6 +452,10 @@ namespace HUMAN.Enemy
         private void HandlePoiseBroken()
         {
             if (!isAlive) return;
+            float pushDir = LastHitDirection.x != 0f 
+                ? Mathf.Sign(LastHitDirection.x) 
+                : (target != null ? Mathf.Sign(transform.position.x - target.position.x) : (transform.eulerAngles.y > 0 ? -1f : 1f));
+            ApplyKnockback(pushDir, heavyHitKnockback);
             // Duruş kırıldığında hemen Stagger durumuna geç
             StateMachine.ChangeState(StaggerState);
         }
@@ -371,6 +466,8 @@ namespace HUMAN.Enemy
         public void TriggerParried()
         {
             if (!isAlive) return;
+            float pushDir = target != null ? Mathf.Sign(transform.position.x - target.position.x) : (transform.eulerAngles.y > 0 ? -1f : 1f);
+            ApplyKnockback(pushDir, heavyHitKnockback);
             StateMachine.ChangeState(StaggerState);
         }
 

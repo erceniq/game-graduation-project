@@ -84,6 +84,7 @@ namespace HUMAN.Enemy.Testing
 
         private void Awake()
         {
+            Time.timeScale = 1.0f;
             EnsureInitialized();
         }
 
@@ -272,14 +273,23 @@ namespace HUMAN.Enemy.Testing
                     : (transform.position + transform.forward * 1.0f + Vector3.up * 1.2f);
                 CombatFeedbackController.Instance.TriggerParryFeedback(sparkPos);
 
-                // 2. PlayerHUD Entegrasyonu: Fist Energy'ye +2 Enerji ekle ve parlama efekti oynat
+                // 2. Oyuncuya hafif karşılıklı tepme (Parry Recoil Knockback)
+                if (leftRightJump != null)
+                {
+                    float recoilDir = (incomingDamage.Instigator != null)
+                        ? Mathf.Sign(transform.position.x - incomingDamage.Instigator.transform.position.x)
+                        : -leftRightJump.FacingDirection;
+                    leftRightJump.ApplyKnockback(recoilDir, 3.0f);
+                }
+
+                // 3. PlayerHUD Entegrasyonu: Fist Energy'ye +2 Enerji ekle ve parlama efekti oynat
                 if (PlayerHUD.Instance != null)
                 {
                     PlayerHUD.Instance.AddEnergy(2);
                     PlayerHUD.Instance.TriggerParryEnergyPulse();
                 }
 
-                // 3. Saldıran düşmanı anında sersemlet (Stagger)
+                // 4. Saldıran düşmanı anında sersemlet (Stagger)
                 if (incomingDamage.Instigator != null)
                 {
                     var enemy = incomingDamage.Instigator.GetComponent<EnemyBrain>();
@@ -312,6 +322,15 @@ namespace HUMAN.Enemy.Testing
             if (PlayerHUD.Instance != null)
             {
                 PlayerHUD.Instance.SetHealth(currentHealth);
+            }
+
+            // Geri tepme (Knockback)
+            if (leftRightJump != null)
+            {
+                float pushDir = damage.HitDirection.x != 0f
+                    ? Mathf.Sign(damage.HitDirection.x)
+                    : (damage.Instigator != null ? Mathf.Sign(transform.position.x - damage.Instigator.transform.position.x) : -leftRightJump.FacingDirection);
+                leftRightJump.ApplyKnockback(pushDir, 5.0f);
             }
 
             // Hasar Geri Bildirimi: Ekran sarsıntısı ve oyuncu hit flash

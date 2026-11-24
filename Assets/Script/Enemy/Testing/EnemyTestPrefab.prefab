@@ -7304,6 +7304,12 @@ MonoBehaviour:
   chaseSpeed: 3.5
   patrolSpeed: 1.8
   patrolWaypoints: []
+  stoppingDistance: 1.45
+  minSeparationDistance: 1.15
+  antiOverlapPushForce: 4
+  normalHitKnockback: 3.5
+  heavyHitKnockback: 7.5
+  knockbackDecay: 12
   staggerDuration: 2.5
   maxComboHits: 3
   combo1Telegraph: 0.6

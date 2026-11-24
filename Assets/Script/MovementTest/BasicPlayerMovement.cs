@@ -49,6 +49,17 @@ public class LeftRightJump : MonoBehaviour
     [SerializeField] private float jumpAttackSlamSpeed = -14.0f;
     [SerializeField] private float jumpAttackLandRecovery = 0.25f;
 
+    [Header("2.5D Player Knockback")]
+    [Tooltip("Geri tepme sönümlenme katsayısı")]
+    [SerializeField] private float knockbackDecay = 14f;
+    private float knockbackVelocityX = 0f;
+
+    public void ApplyKnockback(float directionX, float force)
+    {
+        float dir = Mathf.Abs(directionX) > 0.01f ? Mathf.Sign(directionX) : -facingDirection;
+        knockbackVelocityX = dir * force;
+    }
+
     // Events & Callbacks
     /// <summary>
     /// Saldırı vuruş ânında (Hitbox aktifleşme anı) tetiklenir: (CombatState durum, int komboNo)
@@ -87,6 +98,7 @@ public class LeftRightJump : MonoBehaviour
 
     void Awake()
     {
+        Time.timeScale = 1.0f;
         EnsureInputMap();
         characterController = GetComponent<CharacterController>();
         animator = GetComponentInChildren<Animator>();
@@ -472,6 +484,14 @@ public class LeftRightJump : MonoBehaviour
         else
         {
             velocity.x = horizontal * speed;
+        }
+
+        // Knockback ekle ve eksponansiyel sönümle
+        if (Mathf.Abs(knockbackVelocityX) > 0.05f)
+        {
+            velocity.x += knockbackVelocityX;
+            knockbackVelocityX = Mathf.Lerp(knockbackVelocityX, 0f, knockbackDecay * Time.deltaTime);
+            if (Mathf.Abs(knockbackVelocityX) < 0.05f) knockbackVelocityX = 0f;
         }
 
         // 3. 2.5D Baktığı Yön (+X / -X Snapping)
