@@ -63,6 +63,12 @@ namespace HUMAN.Enemy.StateMachine.States
             {
                 brain.RagdollController.ActivateRagdoll(brain.LastHitDirection);
             }
+
+            // 4. Ganimet düşürme (EnemyLootDropper - B2 Currency & Core)
+            if (brain.LootDropper != null && !brain.LootDropper.HasDropped)
+            {
+                brain.LootDropper.DropLoot();
+            }
         }
 
         public override void Tick(float deltaTime)

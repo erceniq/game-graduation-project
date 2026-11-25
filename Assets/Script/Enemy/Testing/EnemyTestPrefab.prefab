@@ -7193,6 +7193,8 @@ GameObject:
   - component: {fileID: 4976797832360256003}
   - component: {fileID: 2935119900081977804}
   - component: {fileID: 1496155264776682863}
+  - component: {fileID: 8745840476047343541}
+  - component: {fileID: 8438245976919448534}
   m_Layer: 0
   m_Name: EnemyTestPrefab
   m_TagString: Untagged
@@ -7327,6 +7329,8 @@ MonoBehaviour:
   weaponHitbox: {fileID: 3432371095939242914}
   hurtbox: {fileID: 7053285421085052812}
   ragdollController: {fileID: 1496155264776682863}
+  trailController: {fileID: 8745840476047343541}
+  lootDropper: {fileID: 8438245976919448534}
 --- !u!114 &8365703753183839600
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7458,6 +7462,48 @@ MonoBehaviour:
   fadeDelay: 2.5
   fadeDuration: 1.5
   destroyOnFadeComplete: 1
+--- !u!114 &8745840476047343541
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7357332537900598463}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 458165e8bd277874684fac1f245f4d32, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HUMAN.Enemy.EnemyAttackTrailController
+  rightHandTransform: {fileID: 0}
+  leftHandTransform: {fileID: 0}
+  rightHandTrail: {fileID: 0}
+  leftHandTrail: {fileID: 0}
+  trailTime: 0.22
+  startWidth: 0.18
+  endWidth: 0.02
+  trailMaterial: {fileID: 0}
+  normalPunchColor: {r: 0.15, g: 0.85, b: 1, a: 0.9}
+  finisherPunchColor: {r: 1, g: 0.35, b: 0.05, a: 1}
+--- !u!114 &8438245976919448534
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7357332537900598463}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5392838226a8c4429a623474a3c198b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HUMAN.Enemy.EnemyLootDropper
+  minCurrency: 20
+  maxCurrency: 28
+  shardCount: 4
+  coreDropChance: 0
+  currencyPickupPrefab: {fileID: 0}
+  spawnOffset: {x: 0, y: 1.1, z: 0}
+  popForceX: {x: 2, y: 4.5}
+  popForceY: {x: 4, y: 6.5}
 --- !u!1 &7358683187165425926
 GameObject:
   m_ObjectHideFlags: 0

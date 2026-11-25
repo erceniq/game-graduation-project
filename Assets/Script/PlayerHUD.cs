@@ -512,7 +512,24 @@ public class PlayerHUD : MonoBehaviour
     }
     #endregion
 
-    #region STAMINA LOGIC
+    #region STAMINA & CURRENCY LOGIC
+    [Header("Currency Settings")]
+    [Tooltip("Düşmanlardan toplanan para / hurda / naika (Stamina Number alanında gösterilir)")]
+    [SerializeField] private int currentCurrency = 0;
+    public int CurrentCurrency => currentCurrency;
+
+    public void AddCurrency(int amount)
+    {
+        currentCurrency = Mathf.Max(0, currentCurrency + amount);
+        UpdateStamina(currentCurrency);
+    }
+
+    public void SetCurrency(int amount)
+    {
+        currentCurrency = Mathf.Max(0, amount);
+        UpdateStamina(currentCurrency);
+    }
+
     public void UpdateStamina(int stamina)
     {
         if (staminaText == null) return;

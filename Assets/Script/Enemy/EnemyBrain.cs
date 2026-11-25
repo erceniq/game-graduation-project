@@ -88,6 +88,8 @@ namespace HUMAN.Enemy
         [SerializeField] private Hitbox weaponHitbox;
         [SerializeField] private Hurtbox hurtbox;
         [SerializeField] private EnemyRagdollController ragdollController;
+        [SerializeField] private EnemyAttackTrailController trailController;
+        [SerializeField] private EnemyLootDropper lootDropper;
 
         // Çalışma zamanı durumları
         private float currentHealth;
@@ -129,6 +131,8 @@ namespace HUMAN.Enemy
         public Transform[] PatrolWaypoints => patrolWaypoints;
         public Hitbox WeaponHitbox => weaponHitbox;
         public EnemyRagdollController RagdollController => ragdollController;
+        public EnemyAttackTrailController TrailController => trailController;
+        public EnemyLootDropper LootDropper => lootDropper;
         public float StoppingDistance => stoppingDistance;
         public float MinSeparationDistance => minSeparationDistance;
         public float NormalHitKnockback => normalHitKnockback;
@@ -207,6 +211,24 @@ namespace HUMAN.Enemy
             if (ragdollController == null)
             {
                 ragdollController = GetComponent<EnemyRagdollController>();
+            }
+
+            if (trailController == null)
+            {
+                trailController = GetComponent<EnemyAttackTrailController>();
+            }
+            if (trailController != null)
+            {
+                trailController.EnsureInitialized();
+            }
+
+            if (lootDropper == null)
+            {
+                lootDropper = GetComponent<EnemyLootDropper>();
+            }
+            if (lootDropper != null)
+            {
+                lootDropper.EnsureInitialized();
             }
 
             StateMachine = new EnemyStateMachine();
@@ -652,6 +674,10 @@ namespace HUMAN.Enemy
 
             StopMovement();
             OnDeath?.Invoke();
+            if (lootDropper != null && !lootDropper.HasDropped)
+            {
+                lootDropper.DropLoot();
+            }
             StateMachine.ChangeState(DeathState);
         }
         #endregion
