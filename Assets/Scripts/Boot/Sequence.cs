@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class BootSequence : MonoBehaviour
+public class Sequence : MonoBehaviour
 {
     [SerializeField] private CanvasGroup teamLogo;
     [SerializeField] private CanvasGroup autoSave;
